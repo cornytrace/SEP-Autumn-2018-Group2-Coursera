@@ -5,6 +5,11 @@ python:
 services:
   - postgresql
 
+cache:
+  directories:
+    - $HOME/.cache/pip/
+    - $HOME/.cache/pipenv/
+
 install:
   - pip install pipenv
   - pipenv sync --dev
