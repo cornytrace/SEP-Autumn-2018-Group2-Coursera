@@ -2,9 +2,6 @@
 
 [![Build Status](https://travis-ci.com/cornytrace/SEP-Autumn-2018-Group2-Backend.svg?token=ksRe83PxhypHvSJboCmE&branch=master)](https://travis-ci.com/cornytrace/SEP-Autumn-2018-Group2-Backend)
 
-## View the latest build of the site on:
-## https://cornytrace.github.io/SEP-Autumn-2018-Group2-Backend
-
 ## Installation
 
 ### Preparation
