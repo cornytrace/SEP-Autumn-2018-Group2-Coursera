@@ -4,6 +4,7 @@ source = .
 omit =
     manage.py
     eit_dashboard/wsgi.py
+    tests/*
 
 [report]
 fail_under = 100
