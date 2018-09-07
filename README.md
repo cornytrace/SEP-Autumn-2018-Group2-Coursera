@@ -81,3 +81,7 @@ $ pipenv run coverage html
 ## Documentation
 
 [Django](https://docs.djangoproject.com/en/2.1/)
+
+[pytest](https://docs.pytest.org/en/latest/contents.html)
+
+[pytest-django](https://pytest-django.readthedocs.io/en/latest/)

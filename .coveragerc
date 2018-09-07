@@ -1,5 +1,9 @@
 [run]
+branch = true
 source = .
 omit =
     manage.py
     eit_dashboard/wsgi.py
+
+[report]
+fail_under = 100
