@@ -18,6 +18,7 @@ isort = "*"
 pytest = "*"
 pytest-django = "*"
 black = "*"
+colorama = "*"
 
 [pipenv]
 allow_prereleases = true
