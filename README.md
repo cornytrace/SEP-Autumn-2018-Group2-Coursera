@@ -70,8 +70,11 @@ $ pipenv run black .
 # run isort
 $ pipenv run isort . -rc
 
-# run unit tests
-$ pipenv run pytest
+# run unit tests with coverage
+$ pipenv run pytest --cov
+
+# generate full coverage report in htmlcov/
+$ pipenv run coverage html
 
 ```
 

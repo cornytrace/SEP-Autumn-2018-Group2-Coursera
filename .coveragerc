@@ -1,0 +1,5 @@
+[run]
+source = .
+omit =
+    manage.py
+    eit_dashboard/wsgi.py
