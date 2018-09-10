@@ -11,6 +11,8 @@ python_version = "3.6"
 gunicorn = "*"
 django = "*"
 dj-database-url = "*"
+django-oauth-toolkit = "*"
+django-cors-middleware = "*"
 
 [dev-packages]
 "flake8" = "*"
@@ -21,6 +23,8 @@ black = "*"
 colorama = "*"
 coverage = "*"
 pytest-cov = "*"
+factory-boy = "*"
+pytest-factoryboy = "*"
 
 [pipenv]
 allow_prereleases = true
