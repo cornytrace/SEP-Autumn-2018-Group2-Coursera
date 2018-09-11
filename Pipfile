@@ -29,3 +29,7 @@ pytest-factoryboy = "*"
 
 [pipenv]
 allow_prereleases = true
+
+[scripts]
+server = "python manage.py runserver"
+migrate = "python manage.py migrate"

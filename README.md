@@ -52,14 +52,14 @@ $ cd eit-dash-backend
 $ pipenv sync --dev
 
 # create database
-$ pipenv run python manage.py migrate
+$ pipenv run migrate
 ```
 
 ### Usage
 
 ``` bash
 # run the site with hot reload at localhost:8000
-$ pipenv run python manage.py runserver
+$ pipenv run server
 
 # run linter
 $ pipenv run black .
