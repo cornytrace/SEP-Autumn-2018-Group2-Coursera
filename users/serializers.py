@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers
 
@@ -17,6 +18,11 @@ class PasswordResetSerializer(serializers.Serializer):
     def validate_token(self, value):
         if not default_token_generator.check_token(self.instance, value):
             raise serializers.ValidationError("Invalid password reset token.")
+        return value
+
+    def validate_password(self, value):
+        # validate_password raises a ValidationError when validation fails
+        validate_password(value, self.instance)
         return value
 
     def update(self, instance, validated_data):

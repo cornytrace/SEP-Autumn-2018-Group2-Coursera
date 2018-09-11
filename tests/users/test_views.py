@@ -69,11 +69,26 @@ def test_reset_password(user, api_client):
     token = default_token_generator.make_token(user)
     response = api_client.put(
         reverse("users-api:user-password-reset", kwargs={"pk": user.pk}),
-        {"token": token, "password": "new_password"},
+        {"token": token, "password": "7jz*X6CkMH9s&hEEEF9%QrQ^"},
     )
     assert response.status_code == 200, "could not reset password"
     user.refresh_from_db()
-    assert user.check_password("new_password"), "password was not set correctly"
+    assert user.check_password(
+        "7jz*X6CkMH9s&hEEEF9%QrQ^"
+    ), "password was not set correctly"
+
+
+@pytest.mark.django_db
+def test_reset_password_low_quality_password(user, api_client):
+    token = default_token_generator.make_token(user)
+    response = api_client.put(
+        reverse("users-api:user-password-reset", kwargs={"pk": user.pk}),
+        {"token": token, "password": "password"},
+    )
+    assert response.status_code == 400, "request with low-quality password succeeded"
+    assert response.data == {
+        "password": ["This password is too common."]
+    }, "response returned unexpected data"
 
 
 @pytest.mark.django_db
