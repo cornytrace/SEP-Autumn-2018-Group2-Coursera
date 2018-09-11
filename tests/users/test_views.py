@@ -2,6 +2,7 @@ import json
 from urllib.parse import urlparse
 
 import pytest
+from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
 from oauth2_provider.models import Application, Grant
 
@@ -60,6 +61,30 @@ def test_user_viewset_create(admin_api_client):
     assert response.status_code == 201, "could not create new user"
     assert response.data == {
         "email": "new@example.com"
+    }, "response returned unexpected data"
+
+
+@pytest.mark.django_db
+def test_reset_password(user, api_client):
+    token = default_token_generator.make_token(user)
+    response = api_client.put(
+        reverse("users-api:user-password-reset", kwargs={"pk": user.pk}),
+        {"token": token, "password": "new_password"},
+    )
+    assert response.status_code == 200, "could not reset password"
+    user.refresh_from_db()
+    assert user.check_password("new_password"), "password was not set correctly"
+
+
+@pytest.mark.django_db
+def test_reset_password_invalid_token(user, api_client):
+    response = api_client.put(
+        reverse("users-api:user-password-reset", kwargs={"pk": user.pk}),
+        {"token": "invalid_token", "password": "new_password"},
+    )
+    assert response.status_code == 400, "request with invalid token succeeded"
+    assert response.data == {
+        "token": ["Invalid password reset token."]
     }, "response returned unexpected data"
 
 
