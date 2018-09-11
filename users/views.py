@@ -22,7 +22,9 @@ class UserViewSet(ModelViewSet):
     @decorators.action(methods=["put"], detail=True)
     def password_reset(self, request, pk=None):
         user = self.get_object()
-        serializer = PasswordResetSerializer(user, data=request.data)
+        serializer = PasswordResetSerializer(
+            user, data=request.data, context={"request": self.request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response({"status": "password set"})

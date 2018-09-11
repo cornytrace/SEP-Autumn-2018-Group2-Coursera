@@ -6,6 +6,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
 from oauth2_provider.models import Application, Grant
 
+from users.models import User
+
 
 @pytest.mark.django_db
 def test_test_view(user_api_client):
@@ -62,6 +64,17 @@ def test_user_viewset_create(admin_api_client):
     assert response.data == {
         "email": "new@example.com"
     }, "response returned unexpected data"
+    user = User.objects.get(email="new@example.com")
+    assert user.is_active, "new user is not active"
+
+
+@pytest.mark.django_db
+def test_create_user_send_email(admin_api_client, mailoutbox):
+    admin_api_client.post(reverse("users-api:user-list"), {"email": "new@example.com"})
+    assert len(mailoutbox) == 1, "no mails sent"
+    m = mailoutbox[0]
+    assert m.subject == "An account has been created", "subject does not match"
+    assert list(m.to) == ["new@example.com"], "to address does not match"
 
 
 @pytest.mark.django_db
