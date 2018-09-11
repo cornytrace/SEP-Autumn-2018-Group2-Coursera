@@ -13,6 +13,7 @@ django = "*"
 dj-database-url = "*"
 django-oauth-toolkit = "*"
 django-cors-middleware = "*"
+django-rest-framework = "*"
 
 [dev-packages]
 "flake8" = "*"
