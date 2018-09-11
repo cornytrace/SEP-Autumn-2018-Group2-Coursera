@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "oauth2_provider",
+    "rest_framework",
     "corsheaders",
     "users.apps.UsersConfig",
 ]
@@ -125,3 +126,9 @@ STATICFILES_DIRS = [os.path.join(PROJECT_ROOT, "static")]
 
 # TODO: Limit CORS origins
 CORS_ORIGIN_ALLOW_ALL = True
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+    )
+}

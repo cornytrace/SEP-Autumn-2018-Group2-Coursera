@@ -1,7 +1,19 @@
+from datetime import timedelta
+
 import factory
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
+from django.utils.crypto import get_random_string
 from factory.django import DjangoModelFactory
+
+
+class AccessTokenFactory(DjangoModelFactory):
+    class Meta:
+        model = "oauth2_provider.AccessToken"
+
+    token = factory.LazyFunction(get_random_string)
+    expires = factory.LazyFunction(lambda: timezone.now() + timedelta(days=7))
 
 
 class UserFactory(DjangoModelFactory):
