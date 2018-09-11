@@ -8,7 +8,7 @@ def create_default_application(apps, schema_editor):
 
     Application.objects.create(
         client_type="public",
-        authorization_grant_type="authorization-code",
+        authorization_grant_type="password",
         skip_authorization=True,
         name="DASH-IT Frontend",
         client_secret="",

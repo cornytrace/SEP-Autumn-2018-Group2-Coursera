@@ -117,20 +117,21 @@ def test_reset_password_invalid_token(user, api_client):
 
 
 @pytest.mark.django_db
-def test_authorize(user_api_client):
+def test_authorize(api_client, user):
     application = Application.objects.get(name="DASH-IT Frontend")
-    application.redirect_uris = "http://localhost:8080/"
-    application.save()
 
-    response = user_api_client.get(
-        reverse("oauth2_provider:authorize")
-        + "?client_id="
-        + application.client_id
-        + "&state=random_state_string&response_type=code"
+    response = api_client.post(
+        reverse("oauth2_provider:token"),
+        {
+            "client_id": application.client_id,
+            "grant_type": Application.GRANT_PASSWORD,
+            "username": user.email,
+            "password": "password",
+        },
     )
-    assert response.status_code == 302, "failed to get url"
-    url = urlparse(response.url)
-    assert url.scheme == "http", "wrong scheme"
-    assert url.netloc == "localhost:8080", "wrong netloc"
-    assert url.path == "/", "wrong path"
-    assert "code" in url.query, "couldn't find 'code' in query"
+    assert response.status_code == 200, "failed to log in"
+    data = json.loads(response.content)
+    assert "access_token" in data, "did not recieve access token"
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {data['access_token']}")
+    test_response = api_client.get(reverse("users-api:test-view"))
+    assert test_response.status_code == 200, "could not access test view"
