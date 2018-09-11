@@ -1,8 +1,24 @@
+import json
 from urllib.parse import urlparse
 
 import pytest
 from django.urls import reverse
 from oauth2_provider.models import Application, Grant
+
+
+@pytest.mark.django_db
+def test_test_view(user_api_client):
+    response = user_api_client.get(reverse("users-api:test-view"))
+    assert response.status_code == 200, "could not reach test view"
+    assert json.loads(response.content) == {
+        "success": "You have a valid access token"
+    }, "response returned unexpected data"
+
+
+@pytest.mark.django_db
+def test_test_view_no_access(api_client):
+    response = api_client.get(reverse("users-api:test-view"))
+    assert response.status_code == 403, "unauthenticated user could reach test view"
 
 
 @pytest.mark.django_db
