@@ -12,7 +12,7 @@ from users.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["email"]
+        fields = ["pk", "email"]
 
     def create(self, validated_data):
         user = User(**validated_data)
