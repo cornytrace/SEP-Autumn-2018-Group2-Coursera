@@ -27,9 +27,10 @@ This will ensure that your code is automatically fixed to conform to our coding 
 If you use another editor, follow their instructions to enable black and isort, and to enable fix-on-save.
 
 ### Install pipenv
+Make sure python3-pip is installed
 
 ``` bash
-$ pip3 install pipenv
+$ sudo pip3 install pipenv
 
 ```
 
@@ -53,6 +54,9 @@ $ pipenv sync --dev
 
 # create database
 $ pipenv run migrate
+
+# create superuser
+$ pipenv run python manage.py createsuperuser
 ```
 
 ### Usage
