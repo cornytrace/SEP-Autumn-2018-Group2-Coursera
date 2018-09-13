@@ -14,6 +14,7 @@ dj-database-url = "*"
 django-oauth-toolkit = "*"
 django-cors-middleware = "*"
 django-rest-framework = "*"
+django-dotenv = "*"
 
 [dev-packages]
 "flake8" = "*"
