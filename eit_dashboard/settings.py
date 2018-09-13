@@ -21,7 +21,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "7jsd%1+=$8(#^==_x71tx%h%gest13t9-fggzbp2j*(x8%scz="
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY", "7jsd%1+=$8(#^==_x71tx%h%gest13t9-fggzbp2j*(x8%scz="
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -120,9 +122,12 @@ ALLOWED_HOSTS = ["*"]
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = os.environ.get("DJANGO_STATIC_ROOT")
+
+MEDIA_ROOT = os.environ.get("DJANGO_MEDIA_ROOT")
 
 # Extra places for collectstatic to find static files.
-STATICFILES_DIRS = [os.path.join(PROJECT_ROOT, "static")]
+# STATICFILES_DIRS = [os.path.join(PROJECT_ROOT, "static")]
 
 # TODO: Limit CORS origins
 CORS_ORIGIN_ALLOW_ALL = True
