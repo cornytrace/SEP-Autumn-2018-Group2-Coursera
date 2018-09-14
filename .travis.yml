@@ -3,7 +3,7 @@ python:
   - "3.6"
 
 addons:
-  postgresql: "9.6"
+  postgresql: "10.0"
 
 services:
   - postgresql
