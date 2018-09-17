@@ -116,7 +116,7 @@ USE_TZ = True
 DATABASES["default"].update(dj_database_url.config())
 
 # Allow all host headers
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "dashit.win.tue.nl"]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
@@ -129,8 +129,7 @@ MEDIA_ROOT = os.environ.get("DJANGO_MEDIA_ROOT")
 # Extra places for collectstatic to find static files.
 # STATICFILES_DIRS = [os.path.join(PROJECT_ROOT, "static")]
 
-# TODO: Limit CORS origins
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = ["localhost:8080", "cornytrace.github.io"]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
