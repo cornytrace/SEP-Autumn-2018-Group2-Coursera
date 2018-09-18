@@ -36,8 +36,9 @@ class User(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
     TEACHER = "teacher"
     QDT = "qdt"
+    ADMIN = "admin"
 
-    ROLES = ((TEACHER, "Teacher"), (QDT, "Quality & Design Team"))
+    ROLES = ((TEACHER, "Teacher"), (QDT, "Quality & Design Team"), (ADMIN, "Admin"))
 
     role = models.CharField(max_length=10, choices=ROLES, blank=True)
 

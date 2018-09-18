@@ -58,19 +58,47 @@ def test_user_viewset_detail(admin_api_client, user):
 
 
 @pytest.mark.django_db
-def test_user_viewset_create(admin_api_client):
+@pytest.mark.parametrize("role", [User.TEACHER, User.QDT])
+def test_user_viewset_create(admin_api_client, role):
     response = admin_api_client.post(
-        reverse("users-api:user-list"), {"email": "new@example.com", "role": User.QDT}
+        reverse("users-api:user-list"), {"email": "new@example.com", "role": role}
     )
     assert response.status_code == 201, "could not create new user"
     assert response.data.keys() == {"pk", "email", "role"}
     assert (
-        response.data.items() >= {"email": "new@example.com", "role": User.QDT}.items()
+        response.data.items() >= {"email": "new@example.com", "role": role}.items()
     ), "response returned unexpected data"
     user = User.objects.get(email="new@example.com")
-    assert user.role == User.QDT, "user is not a QDT member"
+    assert user.role == role, "user role is not f{role}"
     assert user.is_active, "new user is not active"
     assert not user.has_usable_password(), "user password was set"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("role", [User.TEACHER, User.QDT])
+def test_user_viewset_user_is_not_a_superuser(admin_api_client, role):
+    response = admin_api_client.post(
+        reverse("users-api:user-list"), {"email": "new@example.com", "role": role}
+    )
+    assert response.status_code == 201, "could not create new user"
+    user = User.objects.get(pk=response.data["pk"])
+    assert user.role == role, f"user is not {role}"
+    assert not user.is_staff, f"{role} user is a staff member"
+    assert not user.is_superuser, f"{role} user is a superuser"
+
+
+@pytest.mark.django_db
+def test_user_viewset_create_admin(admin_api_client):
+    response = admin_api_client.post(
+        reverse("users-api:user-list"),
+        {"email": "admin2@example.com", "role": User.ADMIN},
+    )
+    print(response.content)
+    assert response.status_code == 201, "could not create new admin user"
+    user = User.objects.get(pk=response.data["pk"])
+    assert user.role == User.ADMIN, "user is not an admin"
+    assert user.is_staff, "admin is not a staff member"
+    assert user.is_superuser, "admin is not a superuser"
 
 
 @pytest.mark.django_db

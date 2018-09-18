@@ -17,6 +17,9 @@ class UserSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_unusable_password()
         user.is_active = True
+        if user.role == User.ADMIN:
+            user.is_staff = True
+            user.is_superuser = True
         user.save(force_insert=True)
 
         request = self.context["request"]
