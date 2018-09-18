@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 
 from users.models import User
 
+from .courses.factories import CourseFactory
 from .users.factories import AccessTokenFactory, UserFactory
 
 register(UserFactory)
@@ -17,6 +18,7 @@ register(
 )
 register(UserFactory, "teacher", email="teacher@example.com", role=User.TEACHER)
 register(UserFactory, "qdt", email="qdt@example.com", role=User.QDT)
+register(CourseFactory)
 
 
 @pytest.fixture
