@@ -2,14 +2,21 @@ import pytest
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
+from users.models import User
+
 from .users.factories import AccessTokenFactory, UserFactory
 
 register(UserFactory)
 register(
-    UserFactory, "admin", email="admin@example.com", is_staff=True, is_superuser=True
+    UserFactory,
+    "admin",
+    email="admin@example.com",
+    role=User.ADMIN,
+    is_staff=True,
+    is_superuser=True,
 )
-register(UserFactory, "teacher", email="teacher@example.com")
-register(UserFactory, "qdt", email="qdt@example.com")
+register(UserFactory, "teacher", email="teacher@example.com", role=User.TEACHER)
+register(UserFactory, "qdt", email="qdt@example.com", role=User.QDT)
 
 
 @pytest.fixture

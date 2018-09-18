@@ -45,6 +45,13 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
 
+    def update(self, instance, validated_data):
+        if "role" in validated_data and validated_data["role"] == User.ADMIN:
+            validated_data.update({"is_staff": True, "is_superuser": True})
+        elif "role" in validated_data:
+            validated_data.update({"is_staff": False, "is_superuser": False})
+        return super().update(instance, validated_data)
+
 
 class PasswordResetSerializer(serializers.Serializer):
     token = serializers.CharField()

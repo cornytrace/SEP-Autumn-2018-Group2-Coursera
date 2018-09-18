@@ -102,6 +102,72 @@ def test_user_viewset_create_admin(admin_api_client):
 
 
 @pytest.mark.django_db
+def test_user_viewset_set_admin_status(admin_api_client, teacher):
+    assert teacher.role == User.TEACHER, f"user is not a teacher"
+    assert not teacher.is_staff, "user is a staff member"
+    assert not teacher.is_superuser, "user is a superuser"
+
+    response = admin_api_client.patch(
+        reverse("users-api:user-detail", kwargs={"pk": teacher.pk}),
+        {"role": User.ADMIN},
+    )
+    assert response.status_code == 200, "could not change teacher role to admin"
+    admin = User.objects.get(pk=teacher.pk)
+    assert admin.role == User.ADMIN, "user is not an admin"
+    assert admin.is_staff, "user is not a staff member"
+    assert admin.is_superuser, "user is not a superuser"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("role", [User.TEACHER, User.QDT])
+def test_user_viewset_remove_admin_status(admin_api_client, admin, role):
+    assert admin.role == User.ADMIN, "user is not an admin"
+    assert admin.is_staff, "user is not a staff member"
+    assert admin.is_superuser, "user is not a superuser"
+
+    response = admin_api_client.patch(
+        reverse("users-api:user-detail", kwargs={"pk": admin.pk}), {"role": role}
+    )
+    assert response.status_code == 200, "could not change admin role to teacher"
+    user = User.objects.get(pk=admin.pk)
+    assert user.role == role, f"user is not a {role}"
+    assert not user.is_staff, "user is a staff member"
+    assert not user.is_superuser, "user is a superuser"
+
+
+@pytest.mark.django_db
+def test_user_viewset_update_email(admin_api_client, teacher):
+    assert teacher.email != "new@example.com", "email was already set"
+
+    response = admin_api_client.patch(
+        reverse("users-api:user-detail", kwargs={"pk": teacher.pk}),
+        {"email": "new@example.com"},
+    )
+    assert response.status_code == 200, "could not change user's email"
+    teacher.refresh_from_db()
+    assert teacher.email == "new@example.com", "email is not updated"
+
+
+@pytest.mark.django_db
+def test_user_viewset_full_update(admin_api_client, teacher):
+    assert teacher.role == User.TEACHER, f"user is not a teacher"
+    assert not teacher.is_staff, "user is a staff member"
+    assert not teacher.is_superuser, "user is a superuser"
+    assert teacher.email != "new@example.com", "email was already set"
+
+    response = admin_api_client.put(
+        reverse("users-api:user-detail", kwargs={"pk": teacher.pk}),
+        {"email": "new@example.com", "role": User.QDT},
+    )
+    assert response.status_code == 200, "could not update user"
+    qdt = User.objects.get(pk=teacher.pk)
+    assert qdt.role == User.QDT, f"user is not a qdt"
+    assert not qdt.is_staff, "user is a staff member"
+    assert not qdt.is_superuser, "user is a superuser"
+    assert qdt.email == "new@example.com", "email is not updated"
+
+
+@pytest.mark.django_db
 def test_create_user_send_email(admin_api_client, mailoutbox):
     admin_api_client.post(reverse("users-api:user-list"), {"email": "new@example.com"})
     assert len(mailoutbox) == 1, "no mails sent"
