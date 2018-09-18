@@ -10,7 +10,7 @@ def test_can_view_course(admin_api_client, course):
     assert response.status_code == 200, "could not get course detail"
     assert response.data == {
         "pk": course.pk,
-        "course_id": "bmHtyVrIEee3CwoIJ_9DVg",
+        "course_id": course.course_id,
         "course_slug": "capstone-recommender-systems",
         "course_name": "Capstone Recommender Systems",
     }, "view did not return correct data"

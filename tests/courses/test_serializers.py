@@ -7,7 +7,7 @@ from courses.serializers import CourseSerializer
 def test_can_serializer_course(course):
     assert CourseSerializer(course).data == {
         "pk": course.pk,
-        "course_id": "bmHtyVrIEee3CwoIJ_9DVg",
+        "course_id": course.course_id,
         "course_slug": "capstone-recommender-systems",
         "course_name": "Capstone Recommender Systems",
     }

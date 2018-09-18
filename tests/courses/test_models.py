@@ -15,7 +15,7 @@ def test_can_create_course():
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("field", ["course_id", "course_slug"])
+@pytest.mark.parametrize("field", ["course_id"])
 def test_unique_fields(field):
     assert Course._meta.get_field(field).unique, f"Course.{field} is not unique"
 

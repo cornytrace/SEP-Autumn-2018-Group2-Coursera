@@ -13,6 +13,7 @@ def test_serialize_user(user):
         "pk": user.pk,
         "email": "john.doe@example.com",
         "role": User.TEACHER,
+        "courses": [],
     }
 
 

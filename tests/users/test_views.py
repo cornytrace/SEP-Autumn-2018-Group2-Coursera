@@ -6,6 +6,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
 from oauth2_provider.models import Application, Grant
 
+from courses.serializers import CourseSerializer
 from users.models import User
 
 
@@ -54,17 +55,25 @@ def test_user_viewset_detail(admin_api_client, user):
         "pk": user.pk,
         "email": "john.doe@example.com",
         "role": User.TEACHER,
+        "courses": [],
     }, "response returned unexpected data"
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("role", [User.TEACHER, User.QDT])
-def test_user_viewset_create(admin_api_client, role):
+def test_user_viewset_create(admin_api_client, course, role):
     response = admin_api_client.post(
-        reverse("users-api:user-list"), {"email": "new@example.com", "role": role}
+        reverse("users-api:user-list"),
+        {
+            "email": "new@example.com",
+            "role": role,
+            "courses": [CourseSerializer(course).data],
+        },
+        format="json",
     )
+    print(response.content)
     assert response.status_code == 201, "could not create new user"
-    assert response.data.keys() == {"pk", "email", "role"}
+    assert response.data.keys() == {"pk", "email", "role", "courses"}
     assert (
         response.data.items() >= {"email": "new@example.com", "role": role}.items()
     ), "response returned unexpected data"
@@ -149,15 +158,23 @@ def test_user_viewset_update_email(admin_api_client, teacher):
 
 
 @pytest.mark.django_db
-def test_user_viewset_full_update(admin_api_client, teacher):
+def test_user_viewset_full_update(admin_api_client, teacher, course):
     assert teacher.role == User.TEACHER, f"user is not a teacher"
     assert not teacher.is_staff, "user is a staff member"
     assert not teacher.is_superuser, "user is a superuser"
     assert teacher.email != "new@example.com", "email was already set"
+    assert not teacher.courses.filter(
+        course_id=course.course_id
+    ).exists(), "course already set"
 
     response = admin_api_client.put(
         reverse("users-api:user-detail", kwargs={"pk": teacher.pk}),
-        {"email": "new@example.com", "role": User.QDT},
+        {
+            "email": "new@example.com",
+            "role": User.QDT,
+            "courses": [CourseSerializer(course).data],
+        },
+        format="json",
     )
     assert response.status_code == 200, "could not update user"
     qdt = User.objects.get(pk=teacher.pk)
@@ -165,6 +182,7 @@ def test_user_viewset_full_update(admin_api_client, teacher):
     assert not qdt.is_staff, "user is a staff member"
     assert not qdt.is_superuser, "user is a superuser"
     assert qdt.email == "new@example.com", "email is not updated"
+    assert qdt.courses.filter(course_id=course.course_id).exists(), "course not set"
 
 
 @pytest.mark.django_db
