@@ -34,6 +34,12 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     username = None
     email = models.EmailField(_("email address"), unique=True)
+    TEACHER = "teacher"
+    QDT = "qdt"
+
+    ROLES = ((TEACHER, "Teacher"), (QDT, "Quality & Design Team"))
+
+    role = models.CharField(max_length=10, choices=ROLES, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

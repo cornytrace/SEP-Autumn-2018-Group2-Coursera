@@ -8,6 +8,8 @@ register(UserFactory)
 register(
     UserFactory, "admin", email="admin@example.com", is_staff=True, is_superuser=True
 )
+register(UserFactory, "teacher", email="teacher@example.com")
+register(UserFactory, "qdt", email="qdt@example.com")
 
 
 @pytest.fixture

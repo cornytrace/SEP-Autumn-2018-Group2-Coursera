@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from factory.django import DjangoModelFactory
 
+from users.models import User
+
 
 class AccessTokenFactory(DjangoModelFactory):
     class Meta:
@@ -23,6 +25,7 @@ class UserFactory(DjangoModelFactory):
     first_name = "John"
     last_name = "Doe"
     email = "john.doe@example.com"
+    role = User.TEACHER
     password = factory.LazyAttribute(lambda x: make_password("password"))
 
     is_active = True

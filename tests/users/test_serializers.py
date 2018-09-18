@@ -3,12 +3,17 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core import exceptions
 from rest_framework import serializers
 
+from users.models import User
 from users.serializers import PasswordResetSerializer, UserSerializer
 
 
 @pytest.mark.django_db
 def test_serialize_user(user):
-    assert UserSerializer(user).data == {"pk": user.pk, "email": "john.doe@example.com"}
+    assert UserSerializer(user).data == {
+        "pk": user.pk,
+        "email": "john.doe@example.com",
+        "role": User.TEACHER,
+    }
 
 
 @pytest.mark.django_db

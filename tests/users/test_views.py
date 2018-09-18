@@ -53,20 +53,22 @@ def test_user_viewset_detail(admin_api_client, user):
     assert response.data == {
         "pk": user.pk,
         "email": "john.doe@example.com",
+        "role": User.TEACHER,
     }, "response returned unexpected data"
 
 
 @pytest.mark.django_db
 def test_user_viewset_create(admin_api_client):
     response = admin_api_client.post(
-        reverse("users-api:user-list"), {"email": "new@example.com"}
+        reverse("users-api:user-list"), {"email": "new@example.com", "role": User.QDT}
     )
     assert response.status_code == 201, "could not create new user"
-    assert response.data.keys() == {"pk", "email"}
+    assert response.data.keys() == {"pk", "email", "role"}
     assert (
-        response.data.items() >= {"email": "new@example.com"}.items()
+        response.data.items() >= {"email": "new@example.com", "role": User.QDT}.items()
     ), "response returned unexpected data"
     user = User.objects.get(email="new@example.com")
+    assert user.role == User.QDT, "user is not a QDT member"
     assert user.is_active, "new user is not active"
     assert not user.has_usable_password(), "user password was set"
 
