@@ -35,6 +35,7 @@ DEBUG = True
 INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "courses.apps.CoursesConfig",
+    "coursera.apps.CourseraConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -87,8 +88,11 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-    }
+    },
+    "coursera": {"ENGINE": "django.db.backends.dummy", "NAME": "coursera"},
 }
+
+DATABASE_ROUTERS = ["eit_dashboard.db_router.DatabaseRouter"]
 
 AUTH_USER_MODEL = "users.User"
 
@@ -117,6 +121,8 @@ USE_TZ = True
 
 # Change 'default' database configuration with $DATABASE_URL.
 DATABASES["default"].update(dj_database_url.config())
+# Change 'coursera' database configuration with $COURSERA_DATABASE_URL.
+DATABASES["coursera"].update(dj_database_url.config("COURSERA_DATABASE_URL"))
 
 # Allow all host headers
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "dashit.win.tue.nl"]

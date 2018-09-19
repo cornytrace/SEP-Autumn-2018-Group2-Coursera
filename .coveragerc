@@ -5,6 +5,7 @@ omit =
     manage.py
     eit_dashboard/wsgi.py
     tests/*
+    */migrations/*
 
 [report]
 fail_under = 100

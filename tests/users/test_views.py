@@ -13,7 +13,7 @@ from users.models import User
 @pytest.mark.django_db
 def test_test_view(user_api_client):
     response = user_api_client.get(reverse("users-api:test-view"))
-    assert response.status_code == 200, "could not reach test view"
+    assert response.status_code == 200, response.content
     assert json.loads(response.content) == {
         "success": "You have a valid access token"
     }, "response returned unexpected data"
@@ -56,7 +56,7 @@ def test_user_viewset_can_get_own_data(user_api_client, user):
 @pytest.mark.django_db
 def test_admin_can_access_user_viewset(admin_api_client):
     response = admin_api_client.get(reverse("users-api:user-list"))
-    assert response.status_code == 200, "admin user has no permission"
+    assert response.status_code == 200, response.content
 
 
 @pytest.mark.django_db
@@ -64,7 +64,7 @@ def test_user_viewset_detail(admin_api_client, user):
     response = admin_api_client.get(
         reverse("users-api:user-detail", kwargs={"pk": user.pk})
     )
-    assert response.status_code == 200, "admin user can't view user details"
+    assert response.status_code == 200, response.content
     assert response.data == {
         "pk": user.pk,
         "email": "john.doe@example.com",
@@ -93,8 +93,7 @@ def test_user_viewset_create(admin_api_client, course, role):
         },
         format="json",
     )
-    print(response.content)
-    assert response.status_code == 201, "could not create new user"
+    assert response.status_code == 201, response.content
     assert response.data.keys() == {"pk", "email", "role", "courses"}
     assert (
         response.data.items() >= {"email": "new@example.com", "role": role}.items()
@@ -111,7 +110,7 @@ def test_user_viewset_user_is_not_a_superuser(admin_api_client, role):
     response = admin_api_client.post(
         reverse("users-api:user-list"), {"email": "new@example.com", "role": role}
     )
-    assert response.status_code == 201, "could not create new user"
+    assert response.status_code == 201, response.content
     user = User.objects.get(pk=response.data["pk"])
     assert user.role == role, f"user is not {role}"
     assert not user.is_staff, f"{role} user is a staff member"
@@ -124,8 +123,7 @@ def test_user_viewset_create_admin(admin_api_client):
         reverse("users-api:user-list"),
         {"email": "admin2@example.com", "role": User.ADMIN},
     )
-    print(response.content)
-    assert response.status_code == 201, "could not create new admin user"
+    assert response.status_code == 201, response.content
     user = User.objects.get(pk=response.data["pk"])
     assert user.role == User.ADMIN, "user is not an admin"
     assert user.is_staff, "admin is not a staff member"
@@ -142,7 +140,7 @@ def test_user_viewset_set_admin_status(admin_api_client, teacher):
         reverse("users-api:user-detail", kwargs={"pk": teacher.pk}),
         {"role": User.ADMIN},
     )
-    assert response.status_code == 200, "could not change teacher role to admin"
+    assert response.status_code == 200, response.content
     admin = User.objects.get(pk=teacher.pk)
     assert admin.role == User.ADMIN, "user is not an admin"
     assert admin.is_staff, "user is not a staff member"
@@ -159,7 +157,7 @@ def test_user_viewset_remove_admin_status(admin_api_client, admin, role):
     response = admin_api_client.patch(
         reverse("users-api:user-detail", kwargs={"pk": admin.pk}), {"role": role}
     )
-    assert response.status_code == 200, "could not change admin role to teacher"
+    assert response.status_code == 200, response.content
     user = User.objects.get(pk=admin.pk)
     assert user.role == role, f"user is not a {role}"
     assert not user.is_staff, "user is a staff member"
@@ -174,7 +172,7 @@ def test_user_viewset_update_email(admin_api_client, teacher):
         reverse("users-api:user-detail", kwargs={"pk": teacher.pk}),
         {"email": "new@example.com"},
     )
-    assert response.status_code == 200, "could not change user's email"
+    assert response.status_code == 200, response.content
     teacher.refresh_from_db()
     assert teacher.email == "new@example.com", "email is not updated"
 
@@ -198,7 +196,7 @@ def test_user_viewset_full_update(admin_api_client, teacher, course):
         },
         format="json",
     )
-    assert response.status_code == 200, "could not update user"
+    assert response.status_code == 200, response.content
     qdt = User.objects.get(pk=teacher.pk)
     assert qdt.role == User.QDT, f"user is not a qdt"
     assert not qdt.is_staff, "user is a staff member"
@@ -223,7 +221,7 @@ def test_reset_password(user, api_client):
         reverse("users-api:user-password-reset", kwargs={"pk": user.pk}),
         {"token": token, "password": "7jz*X6CkMH9s&hEEEF9%QrQ^"},
     )
-    assert response.status_code == 200, "could not reset password"
+    assert response.status_code == 200, response.content
     user.refresh_from_db()
     assert user.check_password(
         "7jz*X6CkMH9s&hEEEF9%QrQ^"
@@ -286,9 +284,9 @@ def test_authorize(api_client, user):
             "password": "password",
         },
     )
-    assert response.status_code == 200, "failed to log in"
+    assert response.status_code == 200, response.content
     data = json.loads(response.content)
     assert "access_token" in data, "did not recieve access token"
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {data['access_token']}")
     test_response = api_client.get(reverse("users-api:test-view"))
-    assert test_response.status_code == 200, "could not access test view"
+    assert test_response.status_code == 200, response.content
