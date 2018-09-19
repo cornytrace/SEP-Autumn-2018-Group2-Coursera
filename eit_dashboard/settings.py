@@ -25,6 +25,8 @@ SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY", "7jsd%1+=$8(#^==_x71tx%h%gest13t9-fggzbp2j*(x8%scz="
 )
 
+FRONTEND_URL = os.environ.get("DASHIT_FRONTEND_URL", "http://localhost:8080/#/")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -138,4 +140,5 @@ REST_FRAMEWORK = {
     )
 }
 
-EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

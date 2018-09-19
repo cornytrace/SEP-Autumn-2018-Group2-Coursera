@@ -1,3 +1,6 @@
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.http import JsonResponse
 from oauth2_provider.views import ProtectedResourceView
 from rest_framework import decorators, status
@@ -15,11 +18,11 @@ class UserViewSet(ModelViewSet):
     permission_classes = [IsAdminUser]
 
     def get_permissions(self):
-        if self.action == "password_reset":
+        if self.action == "password_reset" or self.action == "forgot_password":
             return [AllowAny()]
         return super().get_permissions()
 
-    @decorators.action(methods=["put"], detail=True)
+    @decorators.action(methods=["put", "post"], detail=True)
     def password_reset(self, request, pk=None):
         user = self.get_object()
         serializer = PasswordResetSerializer(
@@ -30,6 +33,29 @@ class UserViewSet(ModelViewSet):
             return Response({"status": "password set"})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @decorators.action(methods=["put", "post"], detail=False)
+    def forgot_password(self, request):
+        try:
+            user = User.objects.get(email=request.data["email"])
+            token = default_token_generator.make_token(user)
+            link = (
+                settings.FRONTEND_URL
+                + "resetpassword/"
+                + str(token)
+                + "/"
+                + str(user.pk)
+            )
+            send_mail(
+                "Password Reset Request",
+                '<a href="' + link + '"> Click here to reset your password</a>',
+                "noreply@" + request.get_host(),
+                [user.email],
+            )
+        except User.DoesNotExist as e:
+            pass
+
+        return Response(status=200)
 
 
 class TestView(ProtectedResourceView):
