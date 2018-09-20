@@ -4,7 +4,8 @@ from django.core.mail import send_mail
 from django.http import JsonResponse
 from oauth2_provider.views import ProtectedResourceView
 from rest_framework import decorators, status
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -17,9 +18,25 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]
 
+    def list(self, request):
+        queryset = User.objects.all()
+        if not request.user.is_staff:
+            queryset = queryset.filter(pk=request.user.pk)
+        serializer = UserSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = User.objects.all()
+        if not request.user.is_staff and pk != str(request.user.pk):
+            raise PermissionDenied()
+        return super().retrieve(request, pk)
+
     def get_permissions(self):
+        print(self.action)
         if self.action == "password_reset" or self.action == "forgot_password":
             return [AllowAny()]
+        elif self.action == "list" or self.action == "retrieve":
+            return [IsAuthenticated()]
         return super().get_permissions()
 
     @decorators.action(methods=["put", "post"], detail=True)

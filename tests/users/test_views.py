@@ -36,7 +36,14 @@ def test_login_template(client):
 @pytest.mark.django_db
 def test_user_viewset_must_be_admin(user_api_client):
     response = user_api_client.get(reverse("users-api:user-list"))
-    assert response.status_code == 403, "regular user has permission"
+    assert len(response.data) <= 1, "regular user has permission"
+
+
+@pytest.mark.django_db
+def test_user_viewset_can_get_own_data(user_api_client, user):
+    response = user_api_client.get(reverse("users-api:user-list"))
+    assert len(response.data) == 1, "regular user cannot access own data"
+    assert response.data[0]["pk"] == user.pk, "data returned to user is not its data"
 
 
 @pytest.mark.django_db
@@ -57,6 +64,14 @@ def test_user_viewset_detail(admin_api_client, user):
         "role": User.TEACHER,
         "courses": [],
     }, "response returned unexpected data"
+
+
+@pytest.mark.django_db
+def test_user_viewset_detail_cannot_get_other_data(user_api_client, user):
+    response = user_api_client.get(
+        reverse("users-api:user-detail", kwargs={"pk": user.pk + 1})
+    )
+    assert response.status_code == 403, "regular user can access other users data"
 
 
 @pytest.mark.django_db
@@ -231,6 +246,24 @@ def test_reset_password_invalid_token(user, api_client):
     assert response.data == {
         "token": ["Invalid password reset token."]
     }, "response returned unexpected data"
+
+
+@pytest.mark.django_db
+def test_forgot_password_request(user, api_client, mailoutbox):
+    response = api_client.put(
+        reverse("users-api:user-forgot-password"), {"email": "john.doe@example.com"}
+    )
+    assert response.status_code == 200, "response should always return 200"
+    assert len(mailoutbox) == 1, "valid password reset request did not send email"
+
+
+@pytest.mark.django_db
+def test_forgot_password_unknown_email(user, api_client, mailoutbox):
+    response = api_client.put(
+        reverse("users-api:user-forgot-password"), {"email": "jeff.wrong@example.com"}
+    )
+    assert response.status_code == 200, "response should always return 200"
+    assert len(mailoutbox) == 0, "email was sent to an email adress unknown to us"
 
 
 @pytest.mark.django_db
