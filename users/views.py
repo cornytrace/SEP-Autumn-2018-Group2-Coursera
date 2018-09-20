@@ -35,9 +35,14 @@ class UserViewSet(ModelViewSet):
         print(self.action)
         if self.action == "password_reset" or self.action == "forgot_password":
             return [AllowAny()]
-        elif self.action == "list" or self.action == "retrieve":
+        elif self.action == "list" or self.action == "retrieve" or self.action == "me":
             return [IsAuthenticated()]
         return super().get_permissions()
+
+    @decorators.action(methods=["get"], detail=False)
+    def me(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
     @decorators.action(methods=["put", "post"], detail=True)
     def password_reset(self, request, pk=None):

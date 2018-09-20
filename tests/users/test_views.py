@@ -34,6 +34,13 @@ def test_login_template(client):
 
 
 @pytest.mark.django_db
+def test_user_viewset_me(user_api_client, user):
+    response = user_api_client.get(reverse("users-api:user-me"))
+    assert response.status_code == 200, "authenticated user could not get data"
+    assert response.data["pk"] == user.pk, "data returned to user is not its data"
+
+
+@pytest.mark.django_db
 def test_user_viewset_must_be_admin(user_api_client):
     response = user_api_client.get(reverse("users-api:user-list"))
     assert len(response.data) <= 1, "regular user has permission"
