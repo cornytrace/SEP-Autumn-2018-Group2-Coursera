@@ -12,6 +12,7 @@ def test_serialize_course(coursera_course):
         "course_slug": "design-thinking-entrepreneurship",
         "course_name": "Innovation & Entrepreneurship - From Design Thinking to Funding",
         "course_level": Course.INTERMEDIATE,
-        "enrolled_students": 5453,
+        "enrolled_learners": 5453,
+        "finished_learners": 47,
         "modules": 10,
     }

@@ -7,6 +7,7 @@ from coursera.models import (
     CourseBranch,
     CourseBranchModule,
     CourseMembership,
+    CoursePassingState,
     EITDigitalUser,
 )
 
@@ -19,19 +20,21 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "course_slug",
             "course_name",
             "course_level",
-            "enrolled_students",
+            "enrolled_learners",
+            "finished_learners",
             "modules",
         ]
 
-    enrolled_students = serializers.SerializerMethodField()
+    enrolled_learners = serializers.SerializerMethodField()
+    finished_learners = serializers.SerializerMethodField()
     modules = serializers.SerializerMethodField()
 
-    def get_enrolled_students(self, obj):
+    def get_enrolled_learners(self, obj):
         try:
-            return obj.enrolled_students
+            return obj.enrolled_learners
         except AttributeError:
             return Course.objects.filter(pk=obj.pk).aggregate(
-                enrolled_students=Coalesce(
+                enrolled_learners=Coalesce(
                     Count(
                         "coursemembership",
                         filter=Q(
@@ -40,7 +43,26 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                     ),
                     0,
                 )
-            )["enrolled_students"]
+            )["enrolled_learners"]
+
+    def get_finished_learners(self, obj):
+        try:
+            return obj.finished_learners
+        except AttributeError:
+            return Course.objects.filter(pk=obj.pk).aggregate(
+                finished_learners=Coalesce(
+                    Count(
+                        "coursegrade",
+                        filter=Q(
+                            coursegrade__course_passing_state__course_passing_state_desc__in=[
+                                CoursePassingState.PASSED,
+                                CoursePassingState.VERIFIED_PASSED,
+                            ]
+                        ),
+                    ),
+                    0,
+                )
+            )["finished_learners"]
 
     def get_modules(self, obj):
         try:

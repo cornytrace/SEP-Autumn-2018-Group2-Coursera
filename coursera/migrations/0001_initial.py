@@ -223,5 +223,30 @@ class Migration(migrations.Migration):
             ],
             options={"db_table": "users", "managed": False},
         ),
+        migrations.CreateModel(
+            name='CourseGrade',
+            fields=[
+                ('id', models.CharField(max_length=50, primary_key=True, serialize=False)),
+                ('course_grade_ts', models.DateTimeField(blank=True, null=True)),
+                ('course_grade_overall_passed_items', models.IntegerField(blank=True, null=True)),
+                ('course_grade_overall', models.FloatField(blank=True, null=True)),
+                ('course_grade_verified_passed_items', models.IntegerField(blank=True, null=True)),
+                ('course_grade_verified', models.FloatField(blank=True, null=True)),
+            ],
+            options={
+                'db_table': 'course_grades_view',
+                'managed': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='CoursePassingState',
+            fields=[
+                ('course_passing_state_id', models.IntegerField(primary_key=True, serialize=False)),
+                ('course_passing_state_desc', models.CharField(blank=True, choices=[('not passed', 'Not passed'), ('passed', 'Passed'), ('verified passed', 'Verified passed'), ('not passable', 'Not passable')], max_length=255, null=True)),
+            ],
+            options={
+                'db_table': 'course_passing_states',
+                'managed': False,
+            },
+        ),
     ]
-

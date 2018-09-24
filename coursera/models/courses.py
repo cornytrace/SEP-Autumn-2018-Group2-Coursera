@@ -4,7 +4,9 @@ __all__ = [
     "Course",
     "CourseBranch",
     "CourseBranchModule",
+    "CourseGrade",
     "CourseMembership",
+    "CoursePassingState",
     "EITDigitalUser",
 ]
 
@@ -146,3 +148,47 @@ class CourseBranchModule(models.Model):
         managed = False
         db_table = "course_branch_modules_view"
         unique_together = ("course_branch", "course_module_id")
+
+
+class CourseGrade(models.Model):
+    id = models.CharField(primary_key=True, max_length=50)
+    course = models.ForeignKey(
+        "Course", on_delete=models.DO_NOTHING, blank=True, null=True
+    )
+    eitdigital_user = models.ForeignKey("EITDigitalUser", on_delete=models.DO_NOTHING)
+    course_grade_ts = models.DateTimeField(blank=True, null=True)
+    course_passing_state = models.ForeignKey(
+        "CoursePassingState", on_delete=models.DO_NOTHING, blank=True, null=True
+    )
+    course_grade_overall_passed_items = models.IntegerField(blank=True, null=True)
+    course_grade_overall = models.FloatField(blank=True, null=True)
+    course_grade_verified_passed_items = models.IntegerField(blank=True, null=True)
+    course_grade_verified = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = "course_grades_view"
+        unique_together = ("course", "eitdigital_user", "course_grade_ts")
+
+
+class CoursePassingState(models.Model):
+    NOT_PASSED = "not passed"
+    PASSED = "passed"
+    VERIFIED_PASSED = "verified passed"
+    NOT_PASSABLE = "not passable"
+
+    PASSING_STATES = (
+        (NOT_PASSED, "Not passed"),
+        (PASSED, "Passed"),
+        (VERIFIED_PASSED, "Verified passed"),
+        (NOT_PASSABLE, "Not passable"),
+    )
+
+    course_passing_state_id = models.IntegerField(primary_key=True)
+    course_passing_state_desc = models.CharField(
+        max_length=255, blank=True, null=True, choices=PASSING_STATES
+    )
+
+    class Meta:
+        managed = False
+        db_table = "course_passing_states"

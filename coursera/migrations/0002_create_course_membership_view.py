@@ -17,11 +17,11 @@ class Migration(migrations.Migration):
                 CREATE OR REPLACE VIEW course_memberships_view
                 AS
                 SELECT
-                MD5(MD5(MD5(course_memberships.eitdigital_user_id) || course_memberships.course_id) || course_memberships.course_membership_ts) as id,
-                course_memberships.eitdigital_user_id,
-                course_memberships.course_id,
-                course_memberships.course_membership_role,
-                course_memberships.course_membership_ts
+                MD5(MD5(MD5(eitdigital_user_id) || course_id) || course_membership_ts) as id,
+                eitdigital_user_id,
+                course_id,
+                course_membership_role,
+                course_membership_ts
                 FROM
                 course_memberships;
                 """,
