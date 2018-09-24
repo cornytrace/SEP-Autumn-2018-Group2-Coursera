@@ -109,7 +109,7 @@ class CourseMembership(models.Model):
     class Meta:
         managed = False
         db_table = "course_memberships_view"
-        unique_together = ("eitdigital_user", "course")
+        unique_together = ("eitdigital_user", "course", "course_membership_ts")
 
 
 class CourseBranch(models.Model):

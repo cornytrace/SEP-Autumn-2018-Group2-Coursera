@@ -7,68 +7,221 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Course',
+            name="Course",
             fields=[
-                ('course_id', models.CharField(max_length=50, primary_key=True, serialize=False)),
-                ('course_slug', models.CharField(blank=True, max_length=2000, null=True)),
-                ('course_name', models.CharField(blank=True, max_length=2000, null=True)),
-                ('course_launch_ts', models.DateTimeField(blank=True, null=True)),
-                ('course_update_ts', models.DateTimeField(blank=True, null=True)),
-                ('course_deleted', models.BooleanField(blank=True, null=True)),
-                ('course_graded', models.BooleanField(blank=True, null=True)),
-                ('course_desc', models.CharField(blank=True, max_length=10000, null=True)),
-                ('course_restricted', models.BooleanField(blank=True, null=True)),
-                ('course_verification_enabled_at_ts', models.DateTimeField(blank=True, null=True)),
-                ('primary_translation_equivalent_course_id', models.CharField(blank=True, max_length=50, null=True)),
-                ('course_preenrollment_ts', models.DateTimeField(blank=True, null=True)),
-                ('course_workload', models.CharField(blank=True, max_length=100, null=True)),
-                ('course_session_enabled_ts', models.DateTimeField(blank=True, null=True)),
-                ('course_promo_photo_s3_bucket', models.CharField(blank=True, max_length=255, null=True)),
-                ('course_promo_photo_s3_key', models.CharField(blank=True, max_length=10000, null=True)),
-                ('course_level', models.CharField(blank=True, max_length=50, null=True)),
-                ('course_planned_launch_date_text', models.CharField(blank=True, max_length=255, null=True)),
-                ('course_header_image_s3_bucket', models.CharField(blank=True, max_length=255, null=True)),
-                ('course_header_image_s3_key', models.CharField(blank=True, max_length=10000, null=True)),
+                (
+                    "course_id",
+                    models.CharField(max_length=50, primary_key=True, serialize=False),
+                ),
+                (
+                    "course_slug",
+                    models.CharField(blank=True, max_length=2000, null=True),
+                ),
+                (
+                    "course_name",
+                    models.CharField(blank=True, max_length=2000, null=True),
+                ),
+                ("course_launch_ts", models.DateTimeField(blank=True, null=True)),
+                ("course_update_ts", models.DateTimeField(blank=True, null=True)),
+                ("course_deleted", models.BooleanField(blank=True, null=True)),
+                ("course_graded", models.BooleanField(blank=True, null=True)),
+                (
+                    "course_desc",
+                    models.CharField(blank=True, max_length=10000, null=True),
+                ),
+                ("course_restricted", models.BooleanField(blank=True, null=True)),
+                (
+                    "course_verification_enabled_at_ts",
+                    models.DateTimeField(blank=True, null=True),
+                ),
+                (
+                    "primary_translation_equivalent_course_id",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
+                (
+                    "course_preenrollment_ts",
+                    models.DateTimeField(blank=True, null=True),
+                ),
+                (
+                    "course_workload",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "course_session_enabled_ts",
+                    models.DateTimeField(blank=True, null=True),
+                ),
+                (
+                    "course_promo_photo_s3_bucket",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "course_promo_photo_s3_key",
+                    models.CharField(blank=True, max_length=10000, null=True),
+                ),
+                (
+                    "course_level",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
+                (
+                    "course_planned_launch_date_text",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "course_header_image_s3_bucket",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "course_header_image_s3_key",
+                    models.CharField(blank=True, max_length=10000, null=True),
+                ),
             ],
-            options={
-                'db_table': 'courses',
-                'managed': False,
-            },
+            options={"db_table": "courses", "managed": False},
         ),
         migrations.CreateModel(
-            name='CourseMembership',
+            name="CourseMembership",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('course_membership_role', models.CharField(blank=True, max_length=50, null=True)),
-                ('course_membership_ts', models.DateTimeField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "course_membership_role",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
+                ("course_membership_ts", models.DateTimeField(blank=True, null=True)),
             ],
-            options={
-                'db_table': 'course_memberships_view',
-                'managed': False,
-            },
+            options={"db_table": "course_memberships_view", "managed": False},
         ),
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('eitdigital_user_id', models.CharField(max_length=50, primary_key=True, serialize=False)),
-                ('user_join_ts', models.DateTimeField(blank=True, null=True)),
-                ('country_cd', models.CharField(blank=True, max_length=2, null=True)),
-                ('region_cd', models.CharField(blank=True, max_length=3, null=True)),
-                ('profile_language_cd', models.CharField(blank=True, max_length=8, null=True)),
-                ('browser_language_cd', models.CharField(blank=True, max_length=8, null=True)),
-                ('reported_or_inferred_gender', models.CharField(blank=True, max_length=50, null=True)),
-                ('employment_status', models.CharField(blank=True, max_length=100, null=True)),
-                ('educational_attainment', models.CharField(blank=True, max_length=100, null=True)),
-                ('student_status', models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "eitdigital_user_id",
+                    models.CharField(max_length=50, primary_key=True, serialize=False),
+                ),
+                ("user_join_ts", models.DateTimeField(blank=True, null=True)),
+                ("country_cd", models.CharField(blank=True, max_length=2, null=True)),
+                ("region_cd", models.CharField(blank=True, max_length=3, null=True)),
+                (
+                    "profile_language_cd",
+                    models.CharField(blank=True, max_length=8, null=True),
+                ),
+                (
+                    "browser_language_cd",
+                    models.CharField(blank=True, max_length=8, null=True),
+                ),
+                (
+                    "reported_or_inferred_gender",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
+                (
+                    "employment_status",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "educational_attainment",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "student_status",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
             ],
-            options={
-                'db_table': 'users',
-                'managed': False,
-            },
+            options={"db_table": "users", "managed": False},
+        ),
+        migrations.CreateModel(
+            name="CourseBranch",
+            fields=[
+                (
+                    "course_branch_id",
+                    models.CharField(max_length=50, primary_key=True, serialize=False),
+                ),
+                (
+                    "course_branch_changes_description",
+                    models.CharField(blank=True, max_length=65535, null=True),
+                ),
+                (
+                    "authoring_course_branch_name",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "authoring_course_branch_created_ts",
+                    models.DateTimeField(blank=True, null=True),
+                ),
+            ],
+            options={"db_table": "course_branches", "managed": False},
+        ),
+        migrations.CreateModel(
+            name="CourseBranchModule",
+            fields=[
+                (
+                    "id",
+                    models.CharField(max_length=50, primary_key=True, serialize=False),
+                ),
+                (
+                    "course_module_id",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
+                (
+                    "course_branch_module_order",
+                    models.IntegerField(blank=True, null=True),
+                ),
+                (
+                    "course_branch_module_name",
+                    models.CharField(blank=True, max_length=2000, null=True),
+                ),
+                (
+                    "course_branch_module_desc",
+                    models.CharField(blank=True, max_length=10000, null=True),
+                ),
+            ],
+            options={"db_table": "course_branch_modules_view", "managed": False},
+        ),
+        migrations.CreateModel(
+            name="EITDigitalUser",
+            fields=[
+                (
+                    "eitdigital_user_id",
+                    models.CharField(max_length=50, primary_key=True, serialize=False),
+                ),
+                ("user_join_ts", models.DateTimeField(blank=True, null=True)),
+                ("country_cd", models.CharField(blank=True, max_length=2, null=True)),
+                ("region_cd", models.CharField(blank=True, max_length=3, null=True)),
+                (
+                    "profile_language_cd",
+                    models.CharField(blank=True, max_length=8, null=True),
+                ),
+                (
+                    "browser_language_cd",
+                    models.CharField(blank=True, max_length=8, null=True),
+                ),
+                (
+                    "reported_or_inferred_gender",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
+                (
+                    "employment_status",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "educational_attainment",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "student_status",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+            ],
+            options={"db_table": "users", "managed": False},
         ),
     ]
+

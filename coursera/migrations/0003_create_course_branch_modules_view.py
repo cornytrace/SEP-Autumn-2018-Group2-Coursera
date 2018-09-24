@@ -9,19 +9,22 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            sql="""
-            CREATE OR REPLACE VIEW course_branch_modules_view
-            AS
-            SELECT
-            MD5(MD5(course_branch_modules.course_branch_id) || course_branch_modules.course_module_id) as id,
-            course_branch_modules.course_branch_id,
-            course_branch_modules.course_module_id,
-            course_branch_modules.course_branch_module_order,
-            course_branch_modules.course_branch_module_name,
-            course_branch_modules.course_branch_module_desc
-            FROM
-            course_branch_modules;
-            """,
+            sql=[
+                """DROP VIEW IF EXISTS course_branch_modules_view""",
+                """
+                CREATE OR REPLACE VIEW course_branch_modules_view
+                AS
+                SELECT
+                MD5(MD5(course_branch_modules.course_branch_id) || course_branch_modules.course_module_id) as id,
+                course_branch_modules.course_branch_id,
+                course_branch_modules.course_module_id,
+                course_branch_modules.course_branch_module_order,
+                course_branch_modules.course_branch_module_name,
+                course_branch_modules.course_branch_module_desc
+                FROM
+                course_branch_modules;
+                """,
+            ],
             reverse_sql="""
             DROP VIEW course_branch_modules_view
             """,

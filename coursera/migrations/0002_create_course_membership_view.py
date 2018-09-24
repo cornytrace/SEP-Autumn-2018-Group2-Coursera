@@ -9,18 +9,23 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            sql="""
-            CREATE OR REPLACE VIEW course_memberships_view
-            AS
-            SELECT
-            MD5(MD5(course_memberships.eitdigital_user_id) || course_memberships.course_id) as id,
-            course_memberships.eitdigital_user_id,
-            course_memberships.course_id,
-            course_memberships.course_membership_role,
-            course_memberships.course_membership_ts
-            FROM
-            course_memberships;
-            """,
+            sql=[
+                """
+                DROP VIEW IF EXISTS course_membership_view
+                """,
+                """
+                CREATE OR REPLACE VIEW course_memberships_view
+                AS
+                SELECT
+                MD5(MD5(MD5(course_memberships.eitdigital_user_id) || course_memberships.course_id) || course_memberships.course_membership_ts) as id,
+                course_memberships.eitdigital_user_id,
+                course_memberships.course_id,
+                course_memberships.course_membership_role,
+                course_memberships.course_membership_ts
+                FROM
+                course_memberships;
+                """,
+            ],
             reverse_sql="""
             DROP VIEW course_memberships_view
             """,
