@@ -5,6 +5,7 @@ from django.conf import settings
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
+from coursera.models import Course
 from eit_dashboard.db_router import DatabaseRouter
 from users.models import User
 
@@ -32,6 +33,16 @@ register(
 register(UserFactory, "teacher", email="teacher@example.com", role=User.TEACHER)
 register(UserFactory, "qdt", email="qdt@example.com", role=User.QDT)
 register(CourseFactory)
+
+
+@pytest.fixture
+def coursera_course_id():
+    return "27_khHs4EeaXRRKK7mMjqw"
+
+
+@pytest.fixture
+def coursera_course(coursera_course_id):
+    return Course.objects.get(pk=coursera_course_id)
 
 
 @pytest.fixture(scope="session")
