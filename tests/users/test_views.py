@@ -9,6 +9,8 @@ from oauth2_provider.models import Application, Grant
 from courses.serializers import CourseSerializer
 from users.models import User
 
+USER_FIELDS = {"pk", "email", "display_name", "role", "courses"}
+
 
 @pytest.mark.django_db
 def test_test_view(user_api_client):
@@ -68,6 +70,7 @@ def test_user_viewset_detail(admin_api_client, user):
     assert response.data == {
         "pk": user.pk,
         "email": "john.doe@example.com",
+        "display_name": "John Doe",
         "role": User.TEACHER,
         "courses": [],
     }, "response returned unexpected data"
@@ -94,7 +97,7 @@ def test_user_viewset_create(admin_api_client, course, role):
         format="json",
     )
     assert response.status_code == 201, response.content
-    assert response.data.keys() == {"pk", "email", "role", "courses"}
+    assert response.data.keys() == USER_FIELDS
     assert (
         response.data.items() >= {"email": "new@example.com", "role": role}.items()
     ), "response returned unexpected data"

@@ -9,7 +9,7 @@ class UserManager(BaseUserManager):
         Create and save a user with the given email and password.
         """
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user = self.model(email=email, display_name=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -34,6 +34,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     username = None
     email = models.EmailField(_("email address"), unique=True)
+    display_name = models.CharField(max_length=100, blank=True)
     TEACHER = "teacher"
     QDT = "qdt"
     ADMIN = "admin"

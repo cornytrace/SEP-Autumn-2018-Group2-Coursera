@@ -14,7 +14,7 @@ from users.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["pk", "email", "role", "courses"]
+        fields = ["pk", "email", "display_name", "role", "courses"]
 
     courses = CourseSerializer(many=True)
 

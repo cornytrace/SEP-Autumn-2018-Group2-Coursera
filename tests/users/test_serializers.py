@@ -12,6 +12,7 @@ def test_serialize_user(user):
     assert UserSerializer(user).data == {
         "pk": user.pk,
         "email": "john.doe@example.com",
+        "display_name": "John Doe",
         "role": User.TEACHER,
         "courses": [],
     }

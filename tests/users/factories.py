@@ -22,8 +22,7 @@ class UserFactory(DjangoModelFactory):
     class Meta:
         model = settings.AUTH_USER_MODEL
 
-    first_name = "John"
-    last_name = "Doe"
+    display_name = "John Doe"
     email = "john.doe@example.com"
     role = User.TEACHER
     password = factory.LazyAttribute(lambda x: make_password("password"))
