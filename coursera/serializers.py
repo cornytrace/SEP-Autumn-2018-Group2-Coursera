@@ -3,12 +3,13 @@ from django.db.models.functions import Coalesce
 from rest_framework import serializers
 
 from coursera.models import (
+    Branch,
     Course,
-    CourseBranch,
-    CourseBranchModule,
     CourseMembership,
-    CoursePassingState,
     EITDigitalUser,
+    Grade,
+    Module,
+    PassingState,
 )
 
 
@@ -17,9 +18,9 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
         model = Course
         fields = [
             "pk",
-            "course_slug",
-            "course_name",
-            "course_level",
+            "slug",
+            "name",
+            "level",
             "enrolled_learners",
             "finished_learners",
             "modules",
@@ -36,10 +37,8 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             return Course.objects.filter(pk=obj.pk).aggregate(
                 enrolled_learners=Coalesce(
                     Count(
-                        "coursemembership",
-                        filter=Q(
-                            coursemembership__course_membership_role=CourseMembership.LEARNER
-                        ),
+                        "course_memberships",
+                        filter=Q(course_memberships__role=CourseMembership.LEARNER),
                     ),
                     0,
                 )
@@ -52,11 +51,11 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             return Course.objects.filter(pk=obj.pk).aggregate(
                 finished_learners=Coalesce(
                     Count(
-                        "coursegrade",
+                        "grades",
                         filter=Q(
-                            coursegrade__course_passing_state__course_passing_state_desc__in=[
-                                CoursePassingState.PASSED,
-                                CoursePassingState.VERIFIED_PASSED,
+                            grades__passing_state__description__in=[
+                                PassingState.PASSED,
+                                PassingState.VERIFIED_PASSED,
                             ]
                         ),
                     ),
@@ -68,10 +67,10 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
         try:
             return obj.modules
         except AttributeError:
-            return CourseBranch.objects.filter(
+            return Branch.objects.filter(
                 pk=Subquery(
-                    CourseBranch.objects.filter(course_id=obj.pk)
+                    Branch.objects.filter(course_id=obj.pk)
                     .order_by("-authoring_course_branch_created_ts")
                     .values("pk")[:1]
                 )
-            ).aggregate(modules=Coalesce(Count("coursebranchmodule"), 0))["modules"]
+            ).aggregate(modules=Coalesce(Count("modules"), 0))["modules"]

@@ -6,24 +6,18 @@ import users.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('users', '0002_auto_20180910_1154'),
-    ]
+    dependencies = [("users", "0002_auto_20180910_1154")]
 
     operations = [
         migrations.AlterModelManagers(
-            name='user',
-            managers=[
-                ('objects', users.models.UserManager()),
-            ],
+            name="user", managers=[("objects", users.models.UserManager())]
         ),
-        migrations.RemoveField(
-            model_name='user',
-            name='username',
-        ),
+        migrations.RemoveField(model_name="user", name="username"),
         migrations.AlterField(
-            model_name='user',
-            name='email',
-            field=models.EmailField(max_length=254, unique=True, verbose_name='email address'),
+            model_name="user",
+            name="email",
+            field=models.EmailField(
+                max_length=254, unique=True, verbose_name="email address"
+            ),
         ),
     ]

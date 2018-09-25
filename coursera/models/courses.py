@@ -2,11 +2,11 @@ from django.db import models
 
 __all__ = [
     "Course",
-    "CourseBranch",
-    "CourseBranchModule",
-    "CourseGrade",
+    "Branch",
+    "Module",
+    "Grade",
     "CourseMembership",
-    "CoursePassingState",
+    "PassingState",
     "EITDigitalUser",
 ]
 
@@ -22,39 +22,66 @@ class Course(models.Model):
         (ADVANCED, "Advanced"),
     )
 
-    course_id = models.CharField(primary_key=True, max_length=50)
-    course_slug = models.CharField(max_length=2000, blank=True, null=True)
-    course_name = models.CharField(max_length=2000, blank=True, null=True)
-    course_launch_ts = models.DateTimeField(blank=True, null=True)
-    course_update_ts = models.DateTimeField(blank=True, null=True)
-    course_deleted = models.BooleanField(blank=True, null=True)
-    course_graded = models.BooleanField(blank=True, null=True)
-    course_desc = models.CharField(max_length=10000, blank=True, null=True)
-    course_restricted = models.BooleanField(blank=True, null=True)
-    course_verification_enabled_at_ts = models.DateTimeField(blank=True, null=True)
+    id = models.CharField(primary_key=True, max_length=50, db_column="course_id")
+    slug = models.CharField(
+        max_length=2000, blank=True, null=True, db_column="course_slug"
+    )
+    name = models.CharField(
+        max_length=2000, blank=True, null=True, db_column="course_name"
+    )
+    launch_timestamp = models.DateTimeField(
+        blank=True, null=True, db_column="course_launch_ts"
+    )
+    update_timestamp = models.DateTimeField(
+        blank=True, null=True, db_column="course_update_ts"
+    )
+    deleted = models.BooleanField(blank=True, null=True, db_column="course_deleted")
+    graded = models.BooleanField(blank=True, null=True, db_column="course_graded")
+    description = models.CharField(
+        max_length=10000, blank=True, null=True, db_column="course_desc"
+    )
+    restricted = models.BooleanField(
+        blank=True, null=True, db_column="course_restricted"
+    )
+    verification_enabled_at_timestamp = models.DateTimeField(
+        blank=True, null=True, db_column="course_verification_enabled_at_ts"
+    )
     primary_translation_equivalent_course_id = models.CharField(
         max_length=50, blank=True, null=True
     )
-    course_preenrollment_ts = models.DateTimeField(blank=True, null=True)
-    course_workload = models.CharField(max_length=100, blank=True, null=True)
-    course_session_enabled_ts = models.DateTimeField(blank=True, null=True)
-    course_promo_photo_s3_bucket = models.CharField(
-        max_length=255, blank=True, null=True
+    preenrollment_timestamp = models.DateTimeField(
+        blank=True, null=True, db_column="course_preenrollment_ts"
     )
-    course_promo_photo_s3_key = models.CharField(
-        max_length=10000, blank=True, null=True
+    workload = models.CharField(
+        max_length=100, blank=True, null=True, db_column="course_workload"
     )
-    course_level = models.CharField(
-        max_length=50, blank=True, null=True, choices=COURSE_LEVELS
+    session_enabled_timestamp = models.DateTimeField(
+        blank=True, null=True, db_column="course_session_enabled_ts"
     )
-    course_planned_launch_date_text = models.CharField(
-        max_length=255, blank=True, null=True
+    promo_photo_s3_bucket = models.CharField(
+        max_length=255, blank=True, null=True, db_column="course_promo_photo_s3_bucket"
     )
-    course_header_image_s3_bucket = models.CharField(
-        max_length=255, blank=True, null=True
+    promo_photo_s3_key = models.CharField(
+        max_length=10000, blank=True, null=True, db_column="course_promo_photo_s3_key"
     )
-    course_header_image_s3_key = models.CharField(
-        max_length=10000, blank=True, null=True
+    level = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        choices=COURSE_LEVELS,
+        db_column="course_level",
+    )
+    planned_launch_date_text = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_column="course_planned_launch_date_text",
+    )
+    header_image_s3_bucket = models.CharField(
+        max_length=255, blank=True, null=True, db_column="course_header_image_s3_bucket"
+    )
+    header_image_s3_key = models.CharField(
+        max_length=10000, blank=True, null=True, db_column="course_header_image_s3_key"
     )
 
     class Meta:
@@ -99,28 +126,44 @@ class CourseMembership(models.Model):
     )
 
     id = models.CharField(primary_key=True, max_length=50)
-    eitdigital_user = models.ForeignKey("EITDigitalUser", on_delete=models.DO_NOTHING)
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser", related_name="course_memberships", on_delete=models.DO_NOTHING
+    )
     course = models.ForeignKey(
-        "Course", on_delete=models.DO_NOTHING, blank=True, null=True
+        "Course",
+        related_name="course_memberships",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
     )
-    course_membership_role = models.CharField(
-        max_length=50, blank=True, null=True, choices=ROLE_CHOICES
+    role = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        choices=ROLE_CHOICES,
+        db_column="course_membership_role",
     )
-    course_membership_ts = models.DateTimeField(blank=True, null=True)
+    timestamp = models.DateTimeField(
+        blank=True, null=True, db_column="course_membership_ts"
+    )
 
     class Meta:
         managed = False
         db_table = "course_memberships_view"
-        unique_together = ("eitdigital_user", "course", "course_membership_ts")
+        unique_together = ("eitdigital_user", "course", "timestamp")
 
 
-class CourseBranch(models.Model):
-    course_branch_id = models.CharField(max_length=50, primary_key=True)
+class Branch(models.Model):
+    id = models.CharField(max_length=50, primary_key=True, db_column="course_branch_id")
     course = models.ForeignKey(
-        "Course", on_delete=models.DO_NOTHING, blank=True, null=True
+        "Course",
+        related_name="branches",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
     )
-    course_branch_changes_description = models.CharField(
-        max_length=65535, blank=True, null=True
+    changes_description = models.CharField(
+        max_length=65535, blank=True, null=True, db_column="course_branch_id"
     )
     authoring_course_branch_name = models.CharField(
         max_length=255, blank=True, null=True
@@ -132,46 +175,74 @@ class CourseBranch(models.Model):
         db_table = "course_branches"
 
 
-class CourseBranchModule(models.Model):
+class Module(models.Model):
     id = models.CharField(primary_key=True, max_length=50)
-    course_branch = models.ForeignKey(
-        "CourseBranch", on_delete=models.DO_NOTHING, blank=True, null=True
+    branch = models.ForeignKey(
+        "Branch",
+        related_name="modules",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+        db_column="course_branch_id",
     )
-    course_module_id = models.CharField(max_length=50, blank=True, null=True)
-    course_branch_module_order = models.IntegerField(blank=True, null=True)
-    course_branch_module_name = models.CharField(max_length=2000, blank=True, null=True)
-    course_branch_module_desc = models.CharField(
-        max_length=10000, blank=True, null=True
+    module_id = models.CharField(
+        max_length=50, blank=True, null=True, db_column="course_module_id"
+    )
+    order = models.IntegerField(
+        blank=True, null=True, db_column="course_branch_module_order"
+    )
+    name = models.CharField(
+        max_length=2000, blank=True, null=True, db_column="course_branch_module_name"
+    )
+    description = models.CharField(
+        max_length=10000, blank=True, null=True, db_column="course_branch_module_desc"
     )
 
     class Meta:
         managed = False
         db_table = "course_branch_modules_view"
-        unique_together = ("course_branch", "course_module_id")
+        unique_together = ("branch", "module_id")
 
 
-class CourseGrade(models.Model):
+class Grade(models.Model):
     id = models.CharField(primary_key=True, max_length=50)
     course = models.ForeignKey(
-        "Course", on_delete=models.DO_NOTHING, blank=True, null=True
+        "Course",
+        related_name="grades",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
     )
-    eitdigital_user = models.ForeignKey("EITDigitalUser", on_delete=models.DO_NOTHING)
-    course_grade_ts = models.DateTimeField(blank=True, null=True)
-    course_passing_state = models.ForeignKey(
-        "CoursePassingState", on_delete=models.DO_NOTHING, blank=True, null=True
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser", related_name="grades", on_delete=models.DO_NOTHING
     )
-    course_grade_overall_passed_items = models.IntegerField(blank=True, null=True)
-    course_grade_overall = models.FloatField(blank=True, null=True)
-    course_grade_verified_passed_items = models.IntegerField(blank=True, null=True)
-    course_grade_verified = models.FloatField(blank=True, null=True)
+    timestamp = models.DateTimeField(blank=True, null=True, db_column="course_grade_ts")
+    passing_state = models.ForeignKey(
+        "PassingState",
+        related_name="grades+",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+        db_column="course_passing_state_id",
+    )
+    overall_passed_items = models.IntegerField(
+        blank=True, null=True, db_column="course_grade_overall_passed_items"
+    )
+    overall = models.FloatField(blank=True, null=True, db_column="course_grade_overall")
+    verified_passed_items = models.IntegerField(
+        blank=True, null=True, db_column="course_grade_verified_passed_items"
+    )
+    verified = models.FloatField(
+        blank=True, null=True, db_column="course_grade_verified"
+    )
 
     class Meta:
         managed = False
         db_table = "course_grades_view"
-        unique_together = ("course", "eitdigital_user", "course_grade_ts")
+        unique_together = ("course", "eitdigital_user", "timestamp")
 
 
-class CoursePassingState(models.Model):
+class PassingState(models.Model):
     NOT_PASSED = "not passed"
     PASSED = "passed"
     VERIFIED_PASSED = "verified passed"
@@ -184,9 +255,13 @@ class CoursePassingState(models.Model):
         (NOT_PASSABLE, "Not passable"),
     )
 
-    course_passing_state_id = models.IntegerField(primary_key=True)
-    course_passing_state_desc = models.CharField(
-        max_length=255, blank=True, null=True, choices=PASSING_STATES
+    id = models.IntegerField(primary_key=True, db_column="course_passing_state_id")
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        choices=PASSING_STATES,
+        db_column="course_passing_state_desc",
     )
 
     class Meta:

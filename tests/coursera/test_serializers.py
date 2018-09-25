@@ -9,9 +9,9 @@ def test_serialize_course(coursera_course):
     serializer = CourseAnalyticsSerializer(instance=coursera_course)
     assert serializer.data == {
         "pk": "27_khHs4EeaXRRKK7mMjqw",
-        "course_slug": "design-thinking-entrepreneurship",
-        "course_name": "Innovation & Entrepreneurship - From Design Thinking to Funding",
-        "course_level": Course.INTERMEDIATE,
+        "slug": "design-thinking-entrepreneurship",
+        "name": "Innovation & Entrepreneurship - From Design Thinking to Funding",
+        "level": Course.INTERMEDIATE,
         "enrolled_learners": 5453,
         "finished_learners": 47,
         "modules": 10,

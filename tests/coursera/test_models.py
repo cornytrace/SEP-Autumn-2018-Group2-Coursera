@@ -2,28 +2,20 @@ import pytest
 from django.db.models import ProtectedError
 
 from coursera.models import (
+    Branch,
     Course,
-    CourseBranch,
-    CourseBranchModule,
-    CourseGrade,
     CourseMembership,
-    CoursePassingState,
     EITDigitalUser,
+    Grade,
+    Module,
+    PassingState,
 )
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "model",
-    [
-        Course,
-        CourseBranch,
-        CourseBranchModule,
-        CourseGrade,
-        CourseMembership,
-        CoursePassingState,
-        EITDigitalUser,
-    ],
+    [Branch, Course, CourseMembership, EITDigitalUser, Grade, Module, PassingState],
 )
 def test_can_query_model(model):
     assert model.objects.first(), "Coursera database is empty"
@@ -32,15 +24,7 @@ def test_can_query_model(model):
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "model",
-    [
-        Course,
-        CourseBranch,
-        CourseBranchModule,
-        CourseGrade,
-        CourseMembership,
-        CoursePassingState,
-        EITDigitalUser,
-    ],
+    [Branch, Course, CourseMembership, EITDigitalUser, Grade, Module, PassingState],
 )
 def test_cannot_save_model(model):
     with pytest.raises(ProtectedError):
