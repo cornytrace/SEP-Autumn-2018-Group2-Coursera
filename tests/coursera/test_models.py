@@ -11,6 +11,7 @@ from coursera.models import (
     Item,
     Lesson,
     Module,
+    OnDemandSession,
     PassingState,
 )
 
@@ -28,6 +29,7 @@ from coursera.models import (
         Item,
         Lesson,
         Module,
+        OnDemandSession,
         PassingState,
     ],
 )
@@ -48,6 +50,7 @@ def test_can_query_model(model):
         Item,
         Lesson,
         Module,
+        OnDemandSession,
         PassingState,
     ],
 )

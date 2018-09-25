@@ -310,7 +310,7 @@ class Migration(migrations.Migration):
                 ('atom_is_frozen', models.BooleanField(blank=True, db_column='course_branch_atom_is_frozen', null=True)),
             ],
             options={
-                'db_table': 'course_branch_items',
+                'db_table': 'course_branch_items_view',
                 'managed': False,
             },
         ),
@@ -323,7 +323,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, db_column='course_branch_lesson_name', max_length=10000, null=True)),
             ],
             options={
-                'db_table': 'course_branch_lessons',
+                'db_table': 'course_branch_lessons_view',
                 'managed': False,
             },
         ),
@@ -349,6 +349,32 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'course_passing_states',
+                'managed': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='CourseProgress',
+            fields=[
+                ('id', models.TextField(primary_key=True, serialize=False)),
+                ('course_id', models.CharField(blank=True, db_column='course_id', max_length=50, null=True)),
+                ('state_type_id', models.IntegerField(blank=True, db_column='course_progress_state_type_id', null=True)),
+                ('timestamp', models.DateTimeField(blank=True, db_column='course_progress_ts', null=True)),
+            ],
+            options={
+                'db_table': 'course_progress_view',
+                'managed': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='OnDemandSession',
+            fields=[
+                ('id', models.CharField(db_column='on_demand_session_id', max_length=50, primary_key=True, serialize=False)),
+                ('start_timestamp', models.DateTimeField(blank=True, db_column='on_demand_sessions_start_ts', null=True)),
+                ('end_timestamp', models.DateTimeField(blank=True, db_column='on_demand_sessions_end_ts', null=True)),
+                ('enrollment_end_timestamp', models.DateTimeField(blank=True, db_column='on_demand_sessions_enrollment_end_ts', null=True)),
+            ],
+            options={
+                'db_table': 'on_demand_sessions',
                 'managed': False,
             },
         ),
