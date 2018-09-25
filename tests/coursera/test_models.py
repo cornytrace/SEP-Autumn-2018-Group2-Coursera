@@ -7,6 +7,8 @@ from coursera.models import (
     CourseMembership,
     EITDigitalUser,
     Grade,
+    Item,
+    Lesson,
     Module,
     PassingState,
 )
@@ -15,7 +17,17 @@ from coursera.models import (
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "model",
-    [Branch, Course, CourseMembership, EITDigitalUser, Grade, Module, PassingState],
+    [
+        Branch,
+        Course,
+        CourseMembership,
+        EITDigitalUser,
+        Grade,
+        Item,
+        Lesson,
+        Module,
+        PassingState,
+    ],
 )
 def test_can_query_model(model):
     assert model.objects.first(), "Coursera database is empty"
@@ -24,7 +36,17 @@ def test_can_query_model(model):
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "model",
-    [Branch, Course, CourseMembership, EITDigitalUser, Grade, Module, PassingState],
+    [
+        Branch,
+        Course,
+        CourseMembership,
+        EITDigitalUser,
+        Grade,
+        Item,
+        Lesson,
+        Module,
+        PassingState,
+    ],
 )
 def test_cannot_save_model(model):
     with pytest.raises(ProtectedError):

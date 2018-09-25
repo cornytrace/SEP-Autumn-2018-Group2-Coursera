@@ -8,6 +8,8 @@ from coursera.models import (
     CourseMembership,
     EITDigitalUser,
     Grade,
+    Item,
+    Lesson,
     Module,
     PassingState,
 )
