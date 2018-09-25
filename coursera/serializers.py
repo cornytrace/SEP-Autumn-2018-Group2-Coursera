@@ -30,12 +30,14 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "leaving_learners",
             "finished_learners",
             "modules",
+            "cohorts",
         ]
 
     enrolled_learners = serializers.SerializerMethodField()
     leaving_learners = serializers.SerializerMethodField()
     finished_learners = serializers.SerializerMethodField()
     modules = serializers.SerializerMethodField()
+    cohorts = serializers.SerializerMethodField()
 
     def get_enrolled_learners(self, obj):
         try:
@@ -117,3 +119,9 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                     .values("pk")[:1]
                 )
             ).aggregate(modules=Coalesce(Count("modules"), 0))["modules"]
+
+    def get_cohorts(self, obj):
+        try:
+            return obj.cohorts
+        except AttributeError:
+            return obj.sessions.count()

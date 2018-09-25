@@ -378,4 +378,15 @@ class Migration(migrations.Migration):
                 'managed': False,
             },
         ),
+        migrations.CreateModel(
+            name='ItemAssessment',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('assessment_id', models.CharField(blank=True, db_column='assessment_id', max_length=50, null=True)),
+            ],
+            options={
+                'db_table': 'course_branch_item_assessments_view',
+                'managed': False,
+            },
+        ),
     ]

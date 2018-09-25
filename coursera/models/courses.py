@@ -8,6 +8,7 @@ __all__ = [
     "EITDigitalUser",
     "Grade",
     "Item",
+    "ItemAssessment",
     "Lesson",
     "Module",
     "PassingState",
@@ -390,3 +391,32 @@ class CourseProgress(models.Model):
     class Meta:
         managed = False
         db_table = "course_progress_view"
+
+
+class ItemAssessment(models.Model):
+    branch = models.ForeignKey(
+        "Branch",
+        related_name="item_assessments",
+        on_delete=models.DO_NOTHING,
+        db_column="course_branch_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    item = models.ForeignKey(
+        "Item",
+        related_name="item_assessments",
+        on_delete=models.DO_NOTHING,
+        db_column="course_item_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    assessment_id = models.CharField(
+        db_column="assessment_id", max_length=50, blank=True, null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = "course_branch_item_assessments_view"
+        unique_together = ("item", "assessment_id")
