@@ -1,15 +1,16 @@
 from django.db import models
 
 __all__ = [
-    "Course",
     "Branch",
-    "Module",
+    "Course",
+    "CourseMembership",
+    "CourseProgress",
+    "EITDigitalUser",
     "Grade",
     "Item",
     "Lesson",
-    "CourseMembership",
+    "Module",
     "PassingState",
-    "EITDigitalUser",
 ]
 
 
@@ -354,3 +355,38 @@ class PassingState(models.Model):
     class Meta:
         managed = False
         db_table = "course_passing_states"
+
+
+class CourseProgress(models.Model):
+    id = models.TextField(primary_key=True)
+    course_id = models.CharField(
+        db_column="course_id", max_length=50, blank=True, null=True
+    )
+    item = models.ForeignKey(
+        "Item",
+        related_name="progress",
+        on_delete=models.DO_NOTHING,
+        db_column="course_item_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser",
+        related_name="progress",
+        on_delete=models.DO_NOTHING,
+        db_column="eitdigital_user_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    state_type_id = models.IntegerField(
+        db_column="course_progress_state_type_id", blank=True, null=True
+    )
+    timestamp = models.DateTimeField(
+        db_column="course_progress_ts", blank=True, null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = "course_progress_view"

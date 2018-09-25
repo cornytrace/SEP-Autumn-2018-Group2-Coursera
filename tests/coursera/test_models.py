@@ -5,6 +5,7 @@ from coursera.models import (
     Branch,
     Course,
     CourseMembership,
+    CourseProgress,
     EITDigitalUser,
     Grade,
     Item,
@@ -21,6 +22,7 @@ from coursera.models import (
         Branch,
         Course,
         CourseMembership,
+        CourseProgress,
         EITDigitalUser,
         Grade,
         Item,
@@ -30,7 +32,7 @@ from coursera.models import (
     ],
 )
 def test_can_query_model(model):
-    assert model.objects.first(), "Coursera database is empty"
+    assert model.objects.all()[:1], "Coursera database is empty"
 
 
 @pytest.mark.django_db
@@ -40,6 +42,7 @@ def test_can_query_model(model):
         Branch,
         Course,
         CourseMembership,
+        CourseProgress,
         EITDigitalUser,
         Grade,
         Item,
