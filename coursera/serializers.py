@@ -243,7 +243,6 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
         except AttributeError:
             return list(
                 Grade.objects.filter(course_id=obj.pk)
-                .filter()
                 .annotate(month=TruncMonth("timestamp", output_field=DateField()))
                 .annotate(
                     num_finished=Window(
