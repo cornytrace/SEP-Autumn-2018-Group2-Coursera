@@ -29,6 +29,7 @@ pytest-cov = "*"
 factory-boy = "*"
 pytest-factoryboy = "*"
 rope = "*"
+pytest-freezegun = "*"
 
 [pipenv]
 allow_prereleases = true

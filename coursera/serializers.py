@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 from django.db.models import Count, Q, Subquery
-from django.db.models.functions import Coalesce, Now
+from django.db.models.functions import Coalesce
+from django.utils.timezone import now
 from rest_framework import serializers
 
 from coursera.models import (
@@ -83,7 +84,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                 )
                 .difference(
                     CourseProgress.objects.filter(course_id=obj.pk)
-                    .filter(timestamp__gt=Now() - timedelta(weeks=6))
+                    .filter(timestamp__gt=now() - timedelta(weeks=6))
                     .values("eitdigital_user_id")
                 )
                 .count()
