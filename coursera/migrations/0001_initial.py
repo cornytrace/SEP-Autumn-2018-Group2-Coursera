@@ -425,4 +425,18 @@ class Migration(migrations.Migration):
                 'managed': False,
             },
         ),
+        migrations.CreateModel(
+            name='ItemType',
+            fields=[
+                ('id', models.IntegerField(db_column='course_item_type_id', primary_key=True, serialize=False)),
+                ('description', models.CharField(blank=True, db_column='course_item_type_desc', max_length=255, null=True)),
+                ('category', models.CharField(blank=True, db_column='course_item_type_category', max_length=255, null=True)),
+                ('graded', models.BooleanField(blank=True, db_column='course_item_type_graded', null=True)),
+                ('atom_content_type_id', models.IntegerField(blank=True, db_column='atom_content_type_id', null=True)),
+            ],
+            options={
+                'db_table': 'course_item_types',
+                'managed': False,
+            },
+        ),
     ]

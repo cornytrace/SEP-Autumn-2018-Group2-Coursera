@@ -14,6 +14,7 @@ from coursera.models import (
     EITDigitalUser,
     Grade,
     Item,
+    ItemType,
     Lesson,
     Module,
     PassingState,
@@ -34,6 +35,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "modules",
             "quizzes",
             "assignments",
+            "videos",
             "cohorts",
             "ratings",
         ]
@@ -44,6 +46,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
     modules = serializers.SerializerMethodField()
     quizzes = serializers.SerializerMethodField()
     assignments = serializers.SerializerMethodField()
+    videos = serializers.SerializerMethodField()
     cohorts = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
 
@@ -152,6 +155,17 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                     0,
                 )
             )["assignments"]
+
+    def get_videos(self, obj):
+        try:
+            return obj.videos
+        except AttributeError:
+            return self._filter_current_branch(obj.pk).aggregate(
+                videos=Coalesce(
+                    Count("items", filter=Q(items__type__description=ItemType.LECTURE)),
+                    0,
+                )
+            )["videos"]
 
     def get_cohorts(self, obj):
         try:

@@ -11,6 +11,7 @@ __all__ = [
     "ItemAssessment",
     "ItemProgrammingAssignment",
     "ItemPeerAssignment",
+    "ItemType",
     "Lesson",
     "Module",
     "PassingState",
@@ -274,8 +275,13 @@ class Item(models.Model):
     order = models.IntegerField(
         blank=True, null=True, db_column="course_branch_item_order"
     )
-    type_id = models.IntegerField(
-        blank=True, null=True, db_column="course_item_type_id"
+    type = models.ForeignKey(
+        "ItemType",
+        related_name="+",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+        db_column="course_item_type_id",
     )
     name = models.CharField(
         max_length=255, blank=True, null=True, db_column="course_branch_item_name"
@@ -480,3 +486,25 @@ class ItemPeerAssignment(models.Model):
     class Meta:
         managed = False
         db_table = "course_branch_item_peer_assignments_view"
+
+
+class ItemType(models.Model):
+    LECTURE = "lecture"
+
+    id = models.IntegerField(db_column="course_item_type_id", primary_key=True)
+    description = models.CharField(
+        db_column="course_item_type_desc", max_length=255, blank=True, null=True
+    )
+    category = models.CharField(
+        db_column="course_item_type_category", max_length=255, blank=True, null=True
+    )
+    graded = models.BooleanField(
+        db_column="course_item_type_graded", blank=True, null=True
+    )
+    atom_content_type_id = models.IntegerField(
+        db_column="atom_content_type_id", blank=True, null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = "course_item_types"

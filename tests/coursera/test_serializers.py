@@ -19,6 +19,7 @@ def test_serialize_course(coursera_course):
         "modules": 10,
         "quizzes": 27,
         "assignments": 15,
+        "videos": 41,
         "cohorts": 46,
         "ratings": [
             (1, 2),
