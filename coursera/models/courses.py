@@ -9,6 +9,8 @@ __all__ = [
     "Grade",
     "Item",
     "ItemAssessment",
+    "ItemProgrammingAssignment",
+    "ItemPeerAssignment",
     "Lesson",
     "Module",
     "PassingState",

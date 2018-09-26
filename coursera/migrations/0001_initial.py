@@ -411,4 +411,18 @@ class Migration(migrations.Migration):
                 'managed': False,
             },
         ),
+        migrations.CreateModel(
+            name='CourseRating',
+            fields=[
+                ('id', models.TextField(db_column='id', primary_key=True, serialize=False)),
+                ('feedback_system', models.CharField(blank=True, db_column='feedback_system', max_length=100, null=True)),
+                ('rating', models.IntegerField(blank=True, db_column='feedback_rating', null=True)),
+                ('max_rating', models.IntegerField(blank=True, db_column='feedback_max_rating', null=True)),
+                ('timestamp', models.DateTimeField(blank=True, db_column='feedback_ts', null=True)),
+            ],
+            options={
+                'db_table': 'feedback_course_ratings_view',
+                'managed': False,
+            },
+        ),
     ]
