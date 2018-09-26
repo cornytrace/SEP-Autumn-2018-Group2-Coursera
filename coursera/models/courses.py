@@ -449,3 +449,32 @@ class ItemProgrammingAssignment(models.Model):
     class Meta:
         managed = False
         db_table = "course_branch_item_programming_assignments_view"
+
+
+class ItemPeerAssignment(models.Model):
+    id = models.TextField(db_column="id", primary_key=True)
+    branch = models.ForeignKey(
+        "Branch",
+        related_name="item_peer_assignments",
+        on_delete=models.DO_NOTHING,
+        db_column="course_branch_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    course_item_id = models.ForeignKey(
+        "Item",
+        related_name="item_peer_assignments",
+        on_delete=models.DO_NOTHING,
+        db_column="course_item_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    peer_assignment_id = models.CharField(
+        db_column="peer_assignment_id", max_length=50, blank=True, null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = "course_branch_item_peer_assignments_view"
