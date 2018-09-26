@@ -4,6 +4,16 @@ __all__ = ["CourseRating"]
 
 
 class CourseRating(models.Model):
+    NPS_FIRST_WEEK = "NPS_FIRST_WEEK"
+    NPS_END_OF_COURSE = "NPS_END_OF_COURSE"
+    STAR = "STAR"
+
+    FEEDBACK_SYSTEMS = (
+        (NPS_FIRST_WEEK, "First week NPS"),
+        (NPS_END_OF_COURSE, "End of course NPS"),
+        (STAR, "Star"),
+    )
+
     id = models.TextField(db_column="id", primary_key=True)
     course = models.ForeignKey(
         "Course",
@@ -24,7 +34,11 @@ class CourseRating(models.Model):
         null=True,
     )
     feedback_system = models.CharField(
-        db_column="feedback_system", max_length=100, blank=True, null=True
+        db_column="feedback_system",
+        max_length=100,
+        blank=True,
+        null=True,
+        choices=FEEDBACK_SYSTEMS,
     )
     rating = models.IntegerField(db_column="feedback_rating", blank=True, null=True)
     max_rating = models.IntegerField(

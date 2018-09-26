@@ -10,6 +10,7 @@ from coursera.models import (
     Course,
     CourseMembership,
     CourseProgress,
+    CourseRating,
     EITDigitalUser,
     Grade,
     Item,
@@ -34,6 +35,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "quizzes",
             "assignments",
             "cohorts",
+            "ratings",
         ]
 
     enrolled_learners = serializers.SerializerMethodField()
@@ -43,6 +45,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
     quizzes = serializers.SerializerMethodField()
     assignments = serializers.SerializerMethodField()
     cohorts = serializers.SerializerMethodField()
+    ratings = serializers.SerializerMethodField()
 
     def _filter_current_branch(self, course_id):
         return Branch.objects.filter(
@@ -155,3 +158,24 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             return obj.cohorts
         except AttributeError:
             return obj.sessions.count()
+
+    def get_ratings(self, obj):
+        try:
+            return obj.ratings
+        except AttributeError:
+            ratings = list(
+                CourseRating.objects.filter(course_id=obj.pk)
+                .filter(
+                    feedback_system__in=[
+                        CourseRating.NPS_FIRST_WEEK,
+                        CourseRating.NPS_END_OF_COURSE,
+                    ]
+                )
+                .values_list("rating")
+                .annotate(Count("id"))
+                .order_by("rating")
+            )
+            missing = set(range(1, 11)) - {rating for rating, _ in ratings}
+            for i in missing:
+                ratings.insert(i - 1, (i, 0))
+            return ratings

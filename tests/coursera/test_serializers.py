@@ -20,4 +20,16 @@ def test_serialize_course(coursera_course):
         "quizzes": 27,
         "assignments": 15,
         "cohorts": 46,
+        "ratings": [
+            (1, 2),
+            (2, 0),
+            (3, 0),
+            (4, 2),
+            (5, 4),
+            (6, 3),
+            (7, 13),
+            (8, 24),
+            (9, 15),
+            (10, 34),
+        ],
     }
