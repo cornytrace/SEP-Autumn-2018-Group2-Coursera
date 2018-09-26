@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Count, Q, Subquery
+from django.db.models import Count, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -32,6 +32,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "finished_learners",
             "modules",
             "quizzes",
+            "assignments",
             "cohorts",
         ]
 
@@ -40,6 +41,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
     finished_learners = serializers.SerializerMethodField()
     modules = serializers.SerializerMethodField()
     quizzes = serializers.SerializerMethodField()
+    assignments = serializers.SerializerMethodField()
     cohorts = serializers.SerializerMethodField()
 
     def _filter_current_branch(self, course_id):
@@ -135,6 +137,18 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             return self._filter_current_branch(obj.pk).aggregate(
                 quizzes=Coalesce(Count("item_assessments"), 0)
             )["quizzes"]
+
+    def get_assignments(self, obj):
+        try:
+            return obj.assignments
+        except AttributeError:
+            return self._filter_current_branch(obj.pk).aggregate(
+                assignments=Coalesce(
+                    Count("item_programming_assignments")
+                    + Count("item_peer_assignments"),
+                    0,
+                )
+            )["assignments"]
 
     def get_cohorts(self, obj):
         try:
