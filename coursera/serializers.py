@@ -31,6 +31,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "leaving_learners",
             "finished_learners",
             "modules",
+            "quizzes",
             "cohorts",
         ]
 
@@ -38,7 +39,17 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
     leaving_learners = serializers.SerializerMethodField()
     finished_learners = serializers.SerializerMethodField()
     modules = serializers.SerializerMethodField()
+    quizzes = serializers.SerializerMethodField()
     cohorts = serializers.SerializerMethodField()
+
+    def _filter_current_branch(self, course_id):
+        return Branch.objects.filter(
+            pk=Subquery(
+                Branch.objects.filter(course_id=course_id)
+                .order_by("-authoring_course_branch_created_ts")
+                .values("pk")[:1]
+            )
+        )
 
     def get_enrolled_learners(self, obj):
         try:
@@ -113,13 +124,17 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
         try:
             return obj.modules
         except AttributeError:
-            return Branch.objects.filter(
-                pk=Subquery(
-                    Branch.objects.filter(course_id=obj.pk)
-                    .order_by("-authoring_course_branch_created_ts")
-                    .values("pk")[:1]
-                )
-            ).aggregate(modules=Coalesce(Count("modules"), 0))["modules"]
+            return self._filter_current_branch(obj.pk).aggregate(
+                modules=Coalesce(Count("modules"), 0)
+            )["modules"]
+
+    def get_quizzes(self, obj):
+        try:
+            return obj.quizzes
+        except AttributeError:
+            return self._filter_current_branch(obj.pk).aggregate(
+                quizzes=Coalesce(Count("item_assessments"), 0)
+            )["quizzes"]
 
     def get_cohorts(self, obj):
         try:

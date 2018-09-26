@@ -17,5 +17,6 @@ def test_serialize_course(coursera_course):
         "leaving_learners": 5294,
         "finished_learners": 47,
         "modules": 10,
+        "quizzes": 27,
         "cohorts": 46,
     }
