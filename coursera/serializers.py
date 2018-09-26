@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from django.db.models import Count, Q, Subquery, Sum
-from django.db.models.functions import Coalesce
+from django.db.models import Count, DateField, Q, Subquery, Sum, Window
+from django.db.models.functions import Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
 
@@ -38,6 +38,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "videos",
             "cohorts",
             "ratings",
+            "finished_learners_over_time",
         ]
 
     enrolled_learners = serializers.SerializerMethodField()
@@ -49,8 +50,12 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
     videos = serializers.SerializerMethodField()
     cohorts = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
+    finished_learners_over_time = serializers.SerializerMethodField()
 
     def _filter_current_branch(self, course_id):
+        """
+        Return a filtered queryset with just the current branch for `course_id`.
+        """
         return Branch.objects.filter(
             pk=Subquery(
                 Branch.objects.filter(course_id=course_id)
@@ -60,6 +65,10 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
         )
 
     def get_enrolled_learners(self, obj):
+        """
+        Return the number of members for `obj` with either a LEARNER
+        or PRE_ENROLLED_LEARNER status.
+        """
         try:
             return obj.enrolled_learners
         except AttributeError:
@@ -79,6 +88,11 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             )["enrolled_learners"]
 
     def get_leaving_learners(self, obj):
+        """
+        Return the number of members for `obj` that have a LEARNER
+        or PRE_ENROLLED_LEARNER status, have not finished the course
+        and had their last activity more than 6 weeks ago.
+        """
         try:
             return obj.leaving_learners
         except AttributeError:
@@ -110,6 +124,9 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             )
 
     def get_finished_learners(self, obj):
+        """
+        Return the number of members for `obj` that have a a passing grade.
+        """
         try:
             return obj.finished_learners
         except AttributeError:
@@ -129,6 +146,9 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             )["finished_learners"]
 
     def get_modules(self, obj):
+        """
+        Return the number of modules for `obj`'s most recent branch.
+        """
         try:
             return obj.modules
         except AttributeError:
@@ -137,6 +157,10 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             )["modules"]
 
     def get_quizzes(self, obj):
+        """
+        Return the number of quizzes (assessments) for `obj`'s most recent
+        branch.
+        """
         try:
             return obj.quizzes
         except AttributeError:
@@ -145,6 +169,10 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             )["quizzes"]
 
     def get_assignments(self, obj):
+        """
+        Return the number of peer- and programming assignments for `obj`'s
+        most recent branch.
+        """
         try:
             return obj.assignments
         except AttributeError:
@@ -157,6 +185,10 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             )["assignments"]
 
     def get_videos(self, obj):
+        """
+        Return the number of videos (lecture items) for `obj`'s most recent
+        branch.
+        """
         try:
             return obj.videos
         except AttributeError:
@@ -168,12 +200,19 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             )["videos"]
 
     def get_cohorts(self, obj):
+        """
+        Return the number of cohorts (on-demand sessions) for `obj`.
+        """
         try:
             return obj.cohorts
         except AttributeError:
             return obj.sessions.count()
 
     def get_ratings(self, obj):
+        """
+        Return the number of ratings for each rating from 1 to 10 for `obj`,
+        from either a first-week or end-of-course Net Promotor Score (NPS).
+        """
         try:
             return obj.ratings
         except AttributeError:
@@ -193,3 +232,34 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             for i in missing:
                 ratings.insert(i - 1, (i, 0))
             return ratings
+
+    def get_finished_learners_over_time(self, obj):
+        """
+        For each month, show the cumulative number of students that has passed
+        the course `obj`.
+        """
+        try:
+            return obj.finished_learners_over_time
+        except AttributeError:
+            return list(
+                Grade.objects.filter(course_id=obj.pk)
+                .filter()
+                .annotate(month=TruncMonth("timestamp", output_field=DateField()))
+                .annotate(
+                    num_finished=Window(
+                        Count(
+                            "course_id",
+                            filter=Q(
+                                passing_state__description__in=[
+                                    PassingState.PASSED,
+                                    PassingState.VERIFIED_PASSED,
+                                ]
+                            ),
+                        ),
+                        order_by=TruncMonth("timestamp").asc(),
+                    )
+                )
+                .order_by(TruncMonth("timestamp").asc())
+                .values_list("month", "num_finished")
+                .distinct()
+            )

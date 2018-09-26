@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 
 from coursera.models import Course
@@ -32,5 +34,26 @@ def test_serialize_course(coursera_course):
             (8, 24),
             (9, 15),
             (10, 34),
+        ],
+        "finished_learners_over_time": [
+            (date(2017, 2, 1), 0),
+            (date(2017, 3, 1), 0),
+            (date(2017, 4, 1), 0),
+            (date(2017, 5, 1), 5),
+            (date(2017, 6, 1), 9),
+            (date(2017, 7, 1), 15),
+            (date(2017, 8, 1), 15),
+            (date(2017, 9, 1), 16),
+            (date(2017, 10, 1), 18),
+            (date(2017, 11, 1), 21),
+            (date(2017, 12, 1), 22),
+            (date(2018, 1, 1), 28),
+            (date(2018, 2, 1), 32),
+            (date(2018, 3, 1), 33),
+            (date(2018, 4, 1), 38),
+            (date(2018, 5, 1), 41),
+            (date(2018, 6, 1), 42),
+            (date(2018, 7, 1), 46),
+            (date(2018, 8, 1), 47),
         ],
     }
