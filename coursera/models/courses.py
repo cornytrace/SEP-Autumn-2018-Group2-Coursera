@@ -420,3 +420,32 @@ class ItemAssessment(models.Model):
         managed = False
         db_table = "course_branch_item_assessments_view"
         unique_together = ("item", "assessment_id")
+
+
+class ItemProgrammingAssignment(models.Model):
+    id = models.TextField(db_column="id", primary_key=True)
+    branch = models.ForeignKey(
+        "Branch",
+        related_name="item_programming_assignments",
+        on_delete=models.DO_NOTHING,
+        db_column="course_branch_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    course_item_id = models.ForeignKey(
+        "Item",
+        related_name="item_programming_assignments",
+        on_delete=models.DO_NOTHING,
+        db_column="course_item_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    programming_assignment_id = models.CharField(
+        db_column="programming_assignment_id", max_length=50, blank=True, null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = "course_branch_item_programming_assignments_view"

@@ -389,4 +389,15 @@ class Migration(migrations.Migration):
                 'managed': False,
             },
         ),
+        migrations.CreateModel(
+            name='ItemProgrammingAssignment',
+            fields=[
+                ('id', models.TextField(db_column='id', primary_key=True, serialize=False)),
+                ('programming_assignment_id', models.CharField(blank=True, db_column='programming_assignment_id', max_length=50, null=True)),
+            ],
+            options={
+                'db_table': 'course_branch_item_programming_assignments_view',
+                'managed': False,
+            },
+        ),
     ]
