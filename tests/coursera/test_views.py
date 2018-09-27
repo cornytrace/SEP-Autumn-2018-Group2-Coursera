@@ -61,3 +61,12 @@ def test_course_analytics_view(teacher_api_client, coursera_course_id):
             (date(2018, 8, 1), 47),
         ],
     }
+
+
+@pytest.mark.django_db
+def test_course_analytics_no_permissions(teacher_api_client):
+    response = teacher_api_client.get(
+        reverse("coursera-api:course-detail", kwargs={"pk": "bmHtyVrIEee3CwoIJ_9DVg"})
+    )
+    # TODO: this should raise a 403
+    assert response.status_code == 404, str(response.content)
