@@ -1,64 +1,29 @@
 import pytest
 from django.db.models import ProtectedError
+from django.db.models.base import ModelBase
 
-from coursera.models import (
-    Branch,
-    Course,
-    CourseMembership,
-    CourseProgress,
-    CourseRating,
-    EITDigitalUser,
-    Grade,
-    Item,
-    ItemAssessment,
-    ItemPeerAssignment,
-    ItemProgrammingAssignment,
-    ItemType,
-    LastActivity,
-    LastActivityPerModule,
-    Lesson,
-    Module,
-    OnDemandSession,
-    PassingState,
-)
+from coursera import models
 
-models = [
-    Branch,
-    Course,
-    CourseMembership,
-    CourseProgress,
-    CourseRating,
-    EITDigitalUser,
-    Grade,
-    Item,
-    ItemAssessment,
-    ItemPeerAssignment,
-    ItemProgrammingAssignment,
-    ItemType,
-    LastActivity,
-    LastActivityPerModule,
-    Lesson,
-    Module,
-    OnDemandSession,
-    PassingState,
+model_list = [
+    model for model in models.__dict__.values() if isinstance(model, ModelBase)
 ]
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("model", models)
+@pytest.mark.parametrize("model", model_list)
 def test_can_query_model(model):
     assert model.objects.all()[:1], "Coursera database is empty"
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("model", models)
+@pytest.mark.parametrize("model", model_list)
 def test_cannot_save_model(model):
     with pytest.raises(ProtectedError):
         model.objects.create(pk="abc")
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("model", models)
+@pytest.mark.parametrize("model", model_list)
 def test_can_access_foreign_keys(model):
     instance = model.objects.all()[0]
     for field in model._meta.fields:
