@@ -1,6 +1,7 @@
 from datetime import date
 
 import pytest
+from django.urls import reverse
 
 from coursera.models import Course
 from coursera.serializers import CourseAnalyticsSerializer
@@ -8,9 +9,12 @@ from coursera.serializers import CourseAnalyticsSerializer
 
 @pytest.mark.django_db
 @pytest.mark.freeze_time("2018-09-25 15:00")
-def test_serialize_course(coursera_course):
-    serializer = CourseAnalyticsSerializer(instance=coursera_course)
-    assert serializer.data == {
+def test_course_analytics_view(teacher_api_client, coursera_course_id):
+    response = teacher_api_client.get(
+        reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
+    )
+    assert response.status_code == 200, str(resopnse.content)
+    assert response.data == {
         "id": "27_khHs4EeaXRRKK7mMjqw",
         "slug": "design-thinking-entrepreneurship",
         "name": "Innovation & Entrepreneurship - From Design Thinking to Funding",

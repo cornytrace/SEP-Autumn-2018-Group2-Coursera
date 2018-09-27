@@ -25,7 +25,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = [
-            "pk",
+            "id",
             "slug",
             "name",
             "level",
