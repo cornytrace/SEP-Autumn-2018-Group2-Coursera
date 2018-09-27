@@ -15,6 +15,10 @@ class EITDigitalUser(models.Model):
     educational_attainment = models.CharField(max_length=100, blank=True, null=True)
     student_status = models.CharField(max_length=100, blank=True, null=True)
 
+    memberships = models.ManyToManyField(
+        "Course", through="CourseMembership", related_name="members"
+    )
+
     class Meta:
         managed = False
         db_table = "users"
