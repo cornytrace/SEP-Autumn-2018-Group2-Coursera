@@ -15,6 +15,7 @@ from coursera.models import (
     Grade,
     Item,
     ItemType,
+    LastActivityPerModule,
     Lesson,
     Module,
     PassingState,
@@ -39,6 +40,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "cohorts",
             "ratings",
             "finished_learners_over_time",
+            "leaving_learners_per_module",
         ]
 
     enrolled_learners = serializers.SerializerMethodField()
@@ -51,6 +53,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
     cohorts = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
     finished_learners_over_time = serializers.SerializerMethodField()
+    leaving_learners_per_module = serializers.SerializerMethodField()
 
     def _filter_current_branch(self, course_id):
         """
@@ -261,4 +264,28 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                 .order_by(TruncMonth("timestamp").asc())
                 .values_list("month", "num_finished")
                 .distinct()
+            )
+
+    def get_leaving_learners_per_module(self, obj):
+        """
+        For each module in course `obj`, get the number of learners who
+        haven't passed the course and whose activity furtherst in the course
+        was in that module.
+        """
+        try:
+            return obj.leaving_learners_per_module
+        except AttributeError:
+            return list(
+                self._filter_current_branch(obj.pk)
+                .get()
+                .modules.values_list("module_id")
+                .annotate(
+                    user_count=Count(
+                        "last_activity",
+                        filter=Q(
+                            last_activity__timestamp__lt=now() - timedelta(weeks=6)
+                        ),
+                    )
+                )
+                .order_by("order")
             )

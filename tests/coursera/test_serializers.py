@@ -10,7 +10,7 @@ from coursera.serializers import CourseAnalyticsSerializer
 @pytest.mark.freeze_time("2018-09-25 15:00")
 def test_serialize_course(coursera_course):
     serializer = CourseAnalyticsSerializer(instance=coursera_course)
-    assert serializer.data == {
+    data = {
         "id": "27_khHs4EeaXRRKK7mMjqw",
         "slug": "design-thinking-entrepreneurship",
         "name": "Innovation & Entrepreneurship - From Design Thinking to Funding",
@@ -56,4 +56,19 @@ def test_serialize_course(coursera_course):
             (date(2018, 7, 1), 46),
             (date(2018, 8, 1), 47),
         ],
+        "leaving_learners_per_module": [
+            ("sGiw3", 1337),
+            ("mtiDN", 353),
+            ("uNiMX", 302),
+            ("Cnbc7", 110),
+            ("Q5WbI", 60),
+            ("rXWW5", 72),
+            ("1TPfk", 40),
+            ("j2R4F", 29),
+            ("wIGCQ", 99),
+            ("DPfkU", 263),
+        ],
     }
+    assert serializer.data.keys() == data.keys()
+    for key, value in data.items():
+        assert serializer.data[key] == value

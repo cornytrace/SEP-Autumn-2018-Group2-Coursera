@@ -12,6 +12,8 @@ __all__ = [
     "ItemProgrammingAssignment",
     "ItemPeerAssignment",
     "ItemType",
+    "LastActivity",
+    "LastActivityPerModule",
     "Lesson",
     "Module",
     "PassingState",
@@ -186,7 +188,7 @@ class Branch(models.Model):
 
 
 class Module(models.Model):
-    id = models.CharField(primary_key=True, max_length=50)
+    id = models.CharField(primary_key=True, max_length=50, db_column="module_id")
     branch = models.ForeignKey(
         "Branch",
         related_name="modules",
@@ -215,7 +217,7 @@ class Module(models.Model):
 
 
 class Lesson(models.Model):
-    id = models.CharField(primary_key=True, max_length=50)
+    id = models.CharField(primary_key=True, max_length=50, db_column="lesson_id")
     branch = models.ForeignKey(
         "Branch",
         related_name="lessons",
@@ -232,10 +234,7 @@ class Lesson(models.Model):
         "Module",
         related_name="lessons",
         on_delete=models.DO_NOTHING,
-        max_length=50,
-        blank=True,
-        null=True,
-        db_column="course_module_id",
+        db_column="module_id",
     )
     order = models.IntegerField(
         blank=True, null=True, db_column="course_branch_lesson_order"
@@ -251,6 +250,7 @@ class Lesson(models.Model):
 
 
 class Item(models.Model):
+    id = models.CharField(primary_key=True, max_length=50, db_column="item_id")
     branch = models.ForeignKey(
         "Branch",
         related_name="items",
@@ -270,7 +270,7 @@ class Item(models.Model):
         max_length=255,
         blank=True,
         null=True,
-        db_column="course_lesson_id",
+        db_column="lesson_id",
     )
     order = models.IntegerField(
         blank=True, null=True, db_column="course_branch_item_order"
@@ -367,22 +367,62 @@ class PassingState(models.Model):
 
 
 class CourseProgress(models.Model):
-    id = models.TextField(primary_key=True)
-    course_id = models.CharField(
-        db_column="course_id", max_length=50, blank=True, null=True
+    id = models.CharField(max_length=50, primary_key=True)
+    course = models.ForeignKey(
+        "Course",
+        related_name="progress",
+        on_delete=models.DO_NOTHING,
+        db_column="course_id",
+        max_length=50,
+        blank=True,
+        null=True,
     )
     item = models.ForeignKey(
         "Item",
         related_name="progress",
         on_delete=models.DO_NOTHING,
-        db_column="course_item_id",
+        db_column="item_id",
+    )
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser",
+        related_name="progress",
+        on_delete=models.DO_NOTHING,
+        db_column="eitdigital_user_id",
+    )
+    state_type_id = models.IntegerField(
+        db_column="course_progress_state_type_id", blank=True, null=True
+    )
+    timestamp = models.DateTimeField(
+        db_column="course_progress_ts", blank=True, null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = "course_progress_view"
+
+
+class LastActivity(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    course = models.ForeignKey(
+        "Course",
+        related_name="last_activity",
+        on_delete=models.DO_NOTHING,
+        db_column="course_id",
+        blank=True,
+        null=True,
+    )
+    item = models.ForeignKey(
+        "Item",
+        related_name="last_activity",
+        on_delete=models.DO_NOTHING,
+        db_column="item_id",
         max_length=50,
         blank=True,
         null=True,
     )
     eitdigital_user = models.ForeignKey(
         "EITDigitalUser",
-        related_name="progress",
+        related_name="last_activity",
         on_delete=models.DO_NOTHING,
         db_column="eitdigital_user_id",
         max_length=50,
@@ -398,7 +438,36 @@ class CourseProgress(models.Model):
 
     class Meta:
         managed = False
-        db_table = "course_progress_view"
+        db_table = "last_activity_view"
+
+
+class LastActivityPerModule(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    module = models.ForeignKey(
+        "Module",
+        related_name="last_activity",
+        on_delete=models.DO_NOTHING,
+        db_column="module_id",
+    )
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser",
+        related_name="last_activity_per_module",
+        on_delete=models.DO_NOTHING,
+        db_column="eitdigital_user_id",
+    )
+    last_activity = models.ForeignKey(
+        "LastActivity",
+        related_name="last_activity_per_module",
+        on_delete=models.DO_NOTHING,
+        db_column="last_activity_id",
+    )
+    timestamp = models.DateTimeField(
+        db_column="course_progress_ts", blank=True, null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = "last_activity_per_module"
 
 
 class ItemAssessment(models.Model):
@@ -415,7 +484,7 @@ class ItemAssessment(models.Model):
         "Item",
         related_name="item_assessments",
         on_delete=models.DO_NOTHING,
-        db_column="course_item_id",
+        db_column="item_id",
         max_length=50,
         blank=True,
         null=True,
@@ -431,7 +500,7 @@ class ItemAssessment(models.Model):
 
 
 class ItemProgrammingAssignment(models.Model):
-    id = models.TextField(db_column="id", primary_key=True)
+    id = models.CharField(max_length=50, db_column="id", primary_key=True)
     branch = models.ForeignKey(
         "Branch",
         related_name="item_programming_assignments",
@@ -445,7 +514,7 @@ class ItemProgrammingAssignment(models.Model):
         "Item",
         related_name="item_programming_assignments",
         on_delete=models.DO_NOTHING,
-        db_column="course_item_id",
+        db_column="item_id",
         max_length=50,
         blank=True,
         null=True,
@@ -460,7 +529,7 @@ class ItemProgrammingAssignment(models.Model):
 
 
 class ItemPeerAssignment(models.Model):
-    id = models.TextField(db_column="id", primary_key=True)
+    id = models.CharField(max_length=50, db_column="id", primary_key=True)
     branch = models.ForeignKey(
         "Branch",
         related_name="item_peer_assignments",
@@ -474,7 +543,7 @@ class ItemPeerAssignment(models.Model):
         "Item",
         related_name="item_peer_assignments",
         on_delete=models.DO_NOTHING,
-        db_column="course_item_id",
+        db_column="item_id",
         max_length=50,
         blank=True,
         null=True,

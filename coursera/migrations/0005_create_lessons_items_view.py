@@ -11,16 +11,39 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql=[
                 """
+                DROP VIEW IF EXISTS course_branch_lessons_view
+                """,
+                """
+                CREATE OR REPLACE VIEW course_branch_lessons_view
+                AS
+                SELECT
+                MD5(MD5(course_branch_id) || course_lesson_id)::varchar(50) as lesson_id,
+                course_branch_id,
+                course_lesson_id,
+                MD5(MD5(course_branch_id) || course_module_id)::varchar(50) as module_id,
+                course_branch_lesson_order,
+                course_branch_lesson_name
+                FROM
+                course_branch_lessons;
+                """,
+            ],
+            reverse_sql="""
+            DROP VIEW course_branch_lessons_view
+            """,
+        ),
+        migrations.RunSQL(
+            sql=[
+                """
                 DROP VIEW IF EXISTS course_branch_items_view
                 """,
                 """
                 CREATE OR REPLACE VIEW course_branch_items_view
                 AS
                 SELECT
-                MD5(MD5(course_branch_id) || course_item_id) as id,
+                MD5(MD5(course_branch_id) || course_item_id)::varchar(50) as item_id,
                 course_branch_id,
                 course_item_id,
-                course_lesson_id,
+                MD5(MD5(course_branch_id) || course_lesson_id)::varchar(50) as lesson_id,
                 course_branch_item_order,
                 course_item_type_id,
                 course_branch_item_name,
@@ -34,29 +57,6 @@ class Migration(migrations.Migration):
             ],
             reverse_sql="""
             DROP VIEW course_branch_items_view
-            """,
-        ),
-        migrations.RunSQL(
-            sql=[
-                """
-                DROP VIEW IF EXISTS course_branch_lessons_view
-                """,
-                """
-                CREATE OR REPLACE VIEW course_branch_lessons_view
-                AS
-                SELECT
-                MD5(MD5(course_branch_id) || course_lesson_id) as id,
-                course_branch_id,
-                course_lesson_id,
-                course_module_id,
-                course_branch_lesson_order,
-                course_branch_lesson_name
-                FROM
-                course_branch_lessons;
-                """,
-            ],
-            reverse_sql="""
-            DROP VIEW course_branch_lessons_view
             """,
         ),
     ]

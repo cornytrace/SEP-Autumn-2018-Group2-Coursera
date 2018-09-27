@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
                 CREATE OR REPLACE VIEW course_branch_modules_view
                 AS
                 SELECT
-                MD5(MD5(course_branch_id) || course_module_id) as id,
+                MD5(MD5(course_branch_id) || course_module_id)::varchar(50) as module_id,
                 course_branch_id,
                 course_module_id,
                 course_branch_module_order,
