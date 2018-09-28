@@ -1,13 +1,12 @@
 import os
 
 import pytest
-from django.conf import settings
-from pytest_factoryboy import register
-from rest_framework.test import APIClient, APIRequestFactory
-
 from auth.users import User
 from coursera.models import Course
 from coursera_dashboard.db_router import DatabaseRouter
+from django.conf import settings
+from pytest_factoryboy import register
+from rest_framework.test import APIClient, APIRequestFactory
 
 
 @pytest.fixture

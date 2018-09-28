@@ -18,6 +18,7 @@ from rest_framework import serializers
 
 from coursera.models import (
     Branch,
+    ClickstreamEvent,
     Course,
     CourseMembership,
     CourseProgress,
@@ -30,6 +31,40 @@ from coursera.models import (
     Lesson,
     Module,
 )
+
+
+class VideoAnalyticsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClickstreamEvent
+        fields = [
+            "id",
+            "hashed_session_cookie_id",
+            "server_timestamp",
+            "hashed_ip",
+            "user_agent",
+            "url",
+            "initial_referrer_url",
+            "browser_language",
+            "course_id",
+            "country_cd",
+            "region_cd",
+            "timezone",
+            "os",
+            "browser",
+            "key",
+            "value",
+        ]
+
+    def get_watchers_for_video(self, obj):
+        try:
+            return obj.watchers_for_video
+        except AttributeError:
+            return ClickstreamEvent.objects.filter(
+                course_id=self.kwargs["course_id"],
+                value__icontains="item_id='" + self.kwargs["item_id"] + "'",
+            ).aggregate(watchers_for_video=Coalesce(Count("id", distinct=True), 0))[
+                "watchers_for_video"
+            ]
 
 
 class CourseAnalyticsSerializer(serializers.ModelSerializer):

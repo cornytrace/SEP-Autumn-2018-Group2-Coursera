@@ -100,3 +100,16 @@ def test_course_analytics_no_permissions(teacher_api_client):
     )
     # TODO: this should raise a 403
     assert response.status_code == 404, str(response.content)
+
+
+@pytest.mark.django_db
+def test_video_analytics_view(
+    teacher_api_client, coursera_course_id, coursera_video_id
+):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:video-detail",
+            kwargs={"course_id": coursera_course_id, "item_id": coursera_video_id},
+        )
+    )
+    assert response.status_code == 200, str(response.content)
