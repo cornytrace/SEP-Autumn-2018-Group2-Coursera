@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 """,
             ],
             reverse_sql="""
-            DROP MATERIALIZED VIEW last_activity_per_module
+            DROP MATERIALIZED VIEW IF EXISTS last_activity_per_module
             """,
         )
     ]
