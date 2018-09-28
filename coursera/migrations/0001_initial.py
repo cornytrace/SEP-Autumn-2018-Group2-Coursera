@@ -439,4 +439,27 @@ class Migration(migrations.Migration):
                 'managed': False,
             },
         ),
+        migrations.CreateModel(
+            name='LastActivity',
+            fields=[
+                ('id', models.CharField(max_length=50, primary_key=True, serialize=False)),
+                ('state_type_id', models.IntegerField(blank=True, db_column='course_progress_state_type_id', null=True)),
+                ('timestamp', models.DateTimeField(blank=True, db_column='course_progress_ts', null=True)),
+            ],
+            options={
+                'db_table': 'last_activity_view',
+                'managed': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='LastActivityPerModule',
+            fields=[
+                ('id', models.CharField(max_length=50, primary_key=True, serialize=False)),
+                ('timestamp', models.DateTimeField(blank=True, db_column='course_progress_ts', null=True)),
+            ],
+            options={
+                'db_table': 'last_activity_per_module',
+                'managed': False,
+            },
+        ),
     ]

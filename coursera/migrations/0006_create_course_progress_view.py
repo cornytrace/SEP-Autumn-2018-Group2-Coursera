@@ -11,14 +11,11 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql=[
                 """
-                DROP VIEW IF EXISTS course_progress_view
-                """,
-                """
-                CREATE OR REPLACE VIEW
+                CREATE MATERIALIZED VIEW
                     course_progress_view
                 AS
                 SELECT
-                    MD5(MD5(MD5(MD5(MD5(course_id) || course_item_id) || eitdigital_user_id) || course_progress_state_type_id) || course_progress_ts)::varchar(50) as id,
+                    MD5(MD5(MD5(MD5(MD5(MD5(course_id) || course_branch_id) || course_item_id) || eitdigital_user_id) || course_progress_state_type_id) || course_progress_ts)::varchar(50) as id,
                     course_id,
                     MD5(MD5(course_branch_id) || course_item_id)::varchar(50) as item_id,
                     eitdigital_user_id,
@@ -31,9 +28,21 @@ class Migration(migrations.Migration):
                     JOIN course_branch_lessons USING (course_branch_id, course_module_id)
                     JOIN course_branch_items USING (course_branch_id, course_lesson_id, course_item_id)
                 """,
+                """
+                CREATE UNIQUE INDEX ON course_progress_view (id)
+                """,
+                """
+                CREATE INDEX ON course_progress_view (course_id)
+                """,
+                """
+                CREATE INDEX ON course_progress_view (item_id)
+                """,
+                """
+                CREATE INDEX ON course_progress_view (eitdigital_user_id)
+                """,
             ],
             reverse_sql="""
-            DROP VIEW course_progress_view
+            DROP MATERIALIZED VIEW IF EXISTS course_progress_view
             """,
         )
     ]

@@ -11,23 +11,26 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql=[
                 """
-                DROP VIEW IF EXISTS course_membership_view
-                """,
-                """
-                CREATE OR REPLACE VIEW course_memberships_view
+                CREATE MATERIALIZED VIEW course_memberships_view
                 AS
                 SELECT
-                MD5(MD5(MD5(eitdigital_user_id) || course_id) || course_membership_ts) as id,
+                MD5(MD5(MD5(eitdigital_user_id) || course_id) || course_membership_ts)::varchar(50) as id,
                 eitdigital_user_id,
                 course_id,
                 course_membership_role,
                 course_membership_ts
                 FROM
-                course_memberships;
+                course_memberships
+                """,
+                """
+                CREATE UNIQUE INDEX ON course_memberships_view (id)
+                """,
+                """
+                CREATE INDEX ON course_memberships_view (course_id, course_membership_role)
                 """,
             ],
             reverse_sql="""
-            DROP VIEW course_memberships_view
+            DROP MATERIALIZED VIEW IF EXISTS course_memberships_view
             """,
         )
     ]

@@ -11,10 +11,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql=[
                 """
-                DROP VIEW IF EXISTS course_branch_item_assessments_view
-                """,
-                """
-                CREATE OR REPLACE VIEW course_branch_item_assessments_view
+                CREATE MATERIALIZED VIEW course_branch_item_assessments_view
                 AS
                 SELECT
                 MD5(MD5(course_item_id) || assessment_id)::varchar(50) as id,
@@ -24,9 +21,15 @@ class Migration(migrations.Migration):
                 FROM
                 course_branch_item_assessments;
                 """,
+                """
+                CREATE UNIQUE INDEX ON course_branch_item_assessments_view (id)
+                """,
+                """
+                CREATE INDEX ON course_branch_item_assessments_view (item_id)
+                """,
             ],
             reverse_sql="""
-            DROP VIEW course_branch_item_assessments_view
+            DROP MATERIALIZED VIEW IF EXISTS course_branch_item_assessments_view
             """,
         )
     ]

@@ -32,7 +32,16 @@ class Migration(migrations.Migration):
                     course_id,
                     eitdigital_user_id,
                     course_branch_module_order DESC
+                """,
                 """
+                CREATE UNIQUE INDEX ON last_activity_view (id)
+                """,
+                """
+                CREATE INDEX ON last_activity_view (course_id)
+                """,
+                """
+                CREATE INDEX ON last_activity_view (item_id)
+                """,
             ],
             reverse_sql="""
             DROP MATERIALIZED VIEW last_activity_view

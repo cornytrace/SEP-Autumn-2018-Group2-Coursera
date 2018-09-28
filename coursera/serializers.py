@@ -18,7 +18,6 @@ from coursera.models import (
     LastActivityPerModule,
     Lesson,
     Module,
-    PassingState,
 )
 
 
@@ -110,12 +109,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                 .values("eitdigital_user_id")
                 .difference(
                     Grade.objects.filter(course_id=obj.pk)
-                    .filter(
-                        passing_state__description__in=[
-                            PassingState.PASSED,
-                            PassingState.VERIFIED_PASSED,
-                        ]
-                    )
+                    .filter(passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED])
                     .values("eitdigital_user_id")
                 )
                 .difference(
@@ -138,9 +132,9 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                     Count(
                         "grades",
                         filter=Q(
-                            grades__passing_state__description__in=[
-                                PassingState.PASSED,
-                                PassingState.VERIFIED_PASSED,
+                            grades__passing_state__in=[
+                                Grade.PASSED,
+                                Grade.VERIFIED_PASSED,
                             ]
                         ),
                     ),
@@ -252,10 +246,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                         Count(
                             "course_id",
                             filter=Q(
-                                passing_state__description__in=[
-                                    PassingState.PASSED,
-                                    PassingState.VERIFIED_PASSED,
-                                ]
+                                passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED]
                             ),
                         ),
                         order_by=TruncMonth("timestamp").asc(),

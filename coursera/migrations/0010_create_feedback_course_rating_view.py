@@ -11,10 +11,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql=[
                 """
-                DROP VIEW IF EXISTS feedback_course_ratings_view
-                """,
-                """
-                CREATE OR REPLACE VIEW feedback_course_ratings_view
+                CREATE MATERIALIZED VIEW feedback_course_ratings_view
                 AS
                 SELECT
                 MD5(MD5(MD5(MD5(course_id) || eitdigital_user_id) || feedback_system) || feedback_ts) as id,
@@ -27,9 +24,18 @@ class Migration(migrations.Migration):
                 FROM
                 feedback_course_ratings;
                 """,
+                """
+                CREATE UNIQUE INDEX ON feedback_course_ratings_view (id)
+                """,
+                """
+                CREATE INDEX ON feedback_course_ratings_view (course_id)
+                """,
+                """
+                CREATE INDEX ON feedback_course_ratings_view (eitdigital_user_id)
+                """,
             ],
             reverse_sql="""
-            DROP VIEW feedback_course_ratings_view
+            DROP MATERIALIZED VIEW IF EXISTS feedback_course_ratings_view
             """,
         )
     ]

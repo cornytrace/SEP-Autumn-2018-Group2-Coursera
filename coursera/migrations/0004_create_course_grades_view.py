@@ -11,27 +11,32 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql=[
                 """
-                DROP VIEW IF EXISTS course_grades_view
-                """,
-                """
-                CREATE OR REPLACE VIEW course_grades_view
+                CREATE MATERIALIZED VIEW
+                    course_grades_view
                 AS
                 SELECT
-                MD5(MD5(MD5(eitdigital_user_id) || course_id) || course_grade_ts) as id,
-                eitdigital_user_id,
-                course_id,
-                course_grade_ts,
-                course_passing_state_id,
-                course_grade_overall_passed_items,
-                course_grade_overall,
-                course_grade_verified_passed_items,
-                course_grade_verified
+                    MD5(MD5(MD5(eitdigital_user_id) || course_id) || course_grade_ts)::varchar(50) as id,
+                    eitdigital_user_id,
+                    course_id,
+                    course_grade_ts,
+                    course_passing_state_desc,
+                    course_grade_overall_passed_items,
+                    course_grade_overall,
+                    course_grade_verified_passed_items,
+                    course_grade_verified
                 FROM
-                course_grades;
+                    course_grades
+                    JOIN course_passing_states USING (course_passing_state_id)
+                """,
+                """
+                CREATE UNIQUE INDEX ON course_grades_view (id)
+                """,
+                """
+                CREATE INDEX ON course_grades_view (course_id)
                 """,
             ],
             reverse_sql="""
-            DROP VIEW course_grades_view
+            DROP MATERIALIZED VIEW IF EXISTS course_grades_view
             """,
         )
     ]

@@ -30,7 +30,19 @@ class Migration(migrations.Migration):
                 WHERE
                     course_passing_state_id IS NULL
                     OR course_passing_state_id NOT IN (1, 2)
+                """,
                 """
+                CREATE UNIQUE INDEX ON last_activity_per_module (id)
+                """,
+                """
+                CREATE INDEX ON last_activity_per_module (module_id)
+                """,
+                """
+                CREATE INDEX ON last_activity_per_module (last_activity_id)
+                """,
+                """
+                CREATE INDEX ON last_activity_per_module (eitdigital_user_id)
+                """,
             ],
             reverse_sql="""
             DROP MATERIALIZED VIEW last_activity_per_module
