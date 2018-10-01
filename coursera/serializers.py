@@ -35,24 +35,19 @@ from coursera.models import (
 
 class VideoAnalyticsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ClickstreamEvent
+        model = Item
         fields = [
             "id",
-            "hashed_session_cookie_id",
-            "server_timestamp",
-            "hashed_ip",
-            "user_agent",
-            "url",
-            "initial_referrer_url",
-            "browser_language",
-            "course_id",
-            "country_cd",
-            "region_cd",
-            "timezone",
-            "os",
-            "browser",
-            "key",
-            "value",
+            "branch",
+            "item_id",
+            "lesson",
+            "order",
+            "type",
+            "name",
+            "optional",
+            "atom_id",
+            "atom_version_id",
+            "atom_is_frozen",
         ]
 
     def get_watchers_for_video(self, obj):

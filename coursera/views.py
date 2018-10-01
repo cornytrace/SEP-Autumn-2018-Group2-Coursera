@@ -1,4 +1,4 @@
-from coursera.models import ClickstreamEvent, Course
+from coursera.models import ClickstreamEvent, Course, Item
 from coursera.serializers import CourseAnalyticsSerializer, VideoAnalyticsSerializer
 from django.contrib.postgres.fields import JSONField
 from django.db.models.functions import Cast
@@ -17,7 +17,7 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
 
 
 class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
-    queryset = ClickstreamEvent.objects.all()
+    queryset = Item.objects.all()
     serializer_class = VideoAnalyticsSerializer
 
     lookup_field = "value_json__item_id"
