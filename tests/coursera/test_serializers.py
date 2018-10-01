@@ -68,6 +68,9 @@ def test_serialize_course(coursera_course):
             ("wIGCQ", 99),
             ("DPfkU", 263),
         ],
+        "average_time": timedelta(
+            days=20, hours=20, minutes=5, seconds=9, microseconds=461960
+        ),
         "average_time_per_module": [
             ("sGiw3", timedelta(days=13, seconds=67594, microseconds=396139)),
             ("mtiDN", timedelta(days=12, seconds=33541, microseconds=27827)),

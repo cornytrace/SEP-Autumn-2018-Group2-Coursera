@@ -1,6 +1,17 @@
 from datetime import timedelta
 
-from django.db.models import Avg, Count, DateField, F, Q, Subquery, Sum, Window
+from django.db.models import (
+    Avg,
+    Count,
+    DateField,
+    F,
+    Max,
+    Min,
+    Q,
+    Subquery,
+    Sum,
+    Window,
+)
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -40,6 +51,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "ratings",
             "finished_learners_over_time",
             "leaving_learners_per_module",
+            "average_time",
             "average_time_per_module",
         ]
 
@@ -54,6 +66,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
     ratings = serializers.SerializerMethodField()
     finished_learners_over_time = serializers.SerializerMethodField()
     leaving_learners_per_module = serializers.SerializerMethodField()
+    average_time = serializers.SerializerMethodField()
     average_time_per_module = serializers.SerializerMethodField()
 
     def _filter_current_branch(self, course_id):
@@ -282,6 +295,16 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                 )
                 .order_by("order")
             )
+
+    def get_average_time(self, obj):
+        try:
+            return obj.average_time
+        except AttributeError:
+            return (
+                obj.progress.values("eitdigital_user_id")
+                .annotate(time_spent=Max("timestamp") - Min("timestamp"))
+                .aggregate(average_time=Avg("time_spent"))
+            )["average_time"]
 
     def get_average_time_per_module(self, obj):
         try:

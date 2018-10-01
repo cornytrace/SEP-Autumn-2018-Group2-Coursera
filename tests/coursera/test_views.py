@@ -13,7 +13,7 @@ def test_course_analytics_view(teacher_api_client, coursera_course_id):
     response = teacher_api_client.get(
         reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
     )
-    assert response.status_code == 200, str(resopnse.content)
+    assert response.status_code == 200, str(response.content)
     data = {
         "id": "27_khHs4EeaXRRKK7mMjqw",
         "slug": "design-thinking-entrepreneurship",
@@ -72,6 +72,9 @@ def test_course_analytics_view(teacher_api_client, coursera_course_id):
             ("wIGCQ", 99),
             ("DPfkU", 263),
         ],
+        "average_time": timedelta(
+            days=20, hours=20, minutes=5, seconds=9, microseconds=461960
+        ),
         "average_time_per_module": [
             ("sGiw3", timedelta(days=13, seconds=67594, microseconds=396139)),
             ("mtiDN", timedelta(days=12, seconds=33541, microseconds=27827)),
