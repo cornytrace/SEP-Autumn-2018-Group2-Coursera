@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Count, DateField, Q, Subquery, Sum, Window
+from django.db.models import Avg, Count, DateField, F, Q, Subquery, Sum, Window
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -40,6 +40,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
             "ratings",
             "finished_learners_over_time",
             "leaving_learners_per_module",
+            "average_time_per_module",
         ]
 
     enrolled_learners = serializers.SerializerMethodField()
@@ -53,6 +54,7 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
     ratings = serializers.SerializerMethodField()
     finished_learners_over_time = serializers.SerializerMethodField()
     leaving_learners_per_module = serializers.SerializerMethodField()
+    average_time_per_module = serializers.SerializerMethodField()
 
     def _filter_current_branch(self, course_id):
         """
@@ -276,6 +278,28 @@ class CourseAnalyticsSerializer(serializers.ModelSerializer):
                         filter=Q(
                             last_activity__timestamp__lt=now() - timedelta(weeks=6)
                         ),
+                    )
+                )
+                .order_by("order")
+            )
+
+    def get_average_time_per_module(self, obj):
+        try:
+            return obj.average_time_per_module
+        except AttributeError:
+            return list(
+                self._filter_current_branch(obj.pk)
+                .get()
+                .modules.values_list("module_id")
+                .filter(
+                    module_last_activity__eitdigital_user_id=F(
+                        "module_first_activity__eitdigital_user_id"
+                    )
+                )
+                .annotate(
+                    average_time=Avg(
+                        F("module_last_activity__timestamp")
+                        - F("module_first_activity__timestamp")
                     )
                 )
                 .order_by("order")
