@@ -35,9 +35,11 @@ class VideoAnalyticsSerializer(serializers.ModelSerializer):
             "atom_version_id",
             "atom_is_frozen",
             "watched_video",
+            "finished_video",
         ]
 
     watched_video = serializers.SerializerMethodField()
+    finished_video = serializers.SerializerMethodField()
 
     def get_watched_video(self, obj):
         try:
@@ -51,6 +53,22 @@ class VideoAnalyticsSerializer(serializers.ModelSerializer):
                     course_id=obj.branch_id,
                     value_json__item_id=obj.item_id,
                     key="start",
+                )
+                .aggregate(watchers_for_video=Coalesce(Count("pk"), -1))[
+                    "watchers_for_video"
+                ]
+            )
+
+    def get_finished_video(self, obj):
+        try:
+            return obj.watchers_for_video
+        except AttributeError:
+            return (
+                ClickstreamEvent.objects.annotate(
+                    value_json=Cast("value", output_field=JSONField())
+                )
+                .filter(
+                    course_id=obj.branch_id, value_json__item_id=obj.item_id, key="end"
                 )
                 .aggregate(watchers_for_video=Coalesce(Count("pk"), -1))[
                     "watchers_for_video"
