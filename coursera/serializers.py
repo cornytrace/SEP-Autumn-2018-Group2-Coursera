@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from coursera.models import *
+from django.contrib.postgres.fields import JSONField
 from django.db.models import (
     Avg,
     Count,
@@ -12,25 +14,9 @@ from django.db.models import (
     Sum,
     Window,
 )
-from django.db.models.functions import Coalesce, TruncMonth
+from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
-
-from coursera.models import (
-    Branch,
-    ClickstreamEvent,
-    Course,
-    CourseMembership,
-    CourseProgress,
-    CourseRating,
-    EITDigitalUser,
-    Grade,
-    Item,
-    ItemType,
-    LastActivityPerModule,
-    Lesson,
-    Module,
-)
 
 
 class VideoAnalyticsSerializer(serializers.ModelSerializer):
@@ -48,18 +34,28 @@ class VideoAnalyticsSerializer(serializers.ModelSerializer):
             "atom_id",
             "atom_version_id",
             "atom_is_frozen",
+            "watched_video",
         ]
 
-    def get_watchers_for_video(self, obj):
+    watched_video = serializers.SerializerMethodField()
+
+    def get_watched_video(self, obj):
         try:
             return obj.watchers_for_video
         except AttributeError:
-            return ClickstreamEvent.objects.filter(
-                course_id=self.kwargs["course_id"],
-                value__icontains="item_id='" + self.kwargs["item_id"] + "'",
-            ).aggregate(watchers_for_video=Coalesce(Count("id", distinct=True), 0))[
-                "watchers_for_video"
-            ]
+            return (
+                ClickstreamEvent.objects.annotate(
+                    value_json=Cast("value", output_field=JSONField())
+                )
+                .filter(
+                    course_id=obj.branch_id,
+                    value_json__item_id=obj.item_id,
+                    key="start",
+                )
+                .aggregate(watchers_for_video=Coalesce(Count("pk"), -1))[
+                    "watchers_for_video"
+                ]
+            )
 
 
 class CourseAnalyticsSerializer(serializers.ModelSerializer):

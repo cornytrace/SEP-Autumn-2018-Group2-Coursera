@@ -102,13 +102,13 @@ class Item(models.Model):
     name = models.CharField(
         max_length=255, blank=True, null=True, db_column="course_branch_item_name"
     )
-    optional = models.BooleanField(
-        blank=True, null=True, db_column="course_branch_item_optional"
+    optional = models.NullBooleanField(
+        blank=True, db_column="course_branch_item_optional"
     )
     atom_id = models.CharField(max_length=255, blank=True, null=True)
     atom_version_id = models.IntegerField(blank=True, null=True)
-    atom_is_frozen = models.BooleanField(
-        blank=True, null=True, db_column="course_branch_atom_is_frozen"
+    atom_is_frozen = models.NullBooleanField(
+        blank=True, db_column="course_branch_atom_is_frozen"
     )
 
     class Meta:
