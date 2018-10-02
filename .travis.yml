@@ -31,6 +31,7 @@ install:
 
 before_script:
   - psql -U postgres -c 'create database test_coursera;'
+  - git fetch origin coursera_db --depth 1
   - git checkout coursera_db
   - ./reconstruct.sh
   - psql -U postgres -d test_coursera -f coursera.sql
