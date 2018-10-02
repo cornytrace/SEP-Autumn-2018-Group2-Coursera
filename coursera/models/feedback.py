@@ -1,6 +1,6 @@
 from django.db import models
 
-__all__ = ["CourseRating"]
+__all__ = ["CourseRating", "ItemRating"]
 
 
 class CourseRating(models.Model):
@@ -50,3 +50,20 @@ class CourseRating(models.Model):
         managed = False
         db_table = "feedback_course_ratings_view"
         unique_together = ("course", "user", "feedback_system", "timestamp")
+
+
+class ItemRating(models.Model):
+    id = models.CharField(max_length=50, primary_key=True, db_column="course_id")
+    course_item_id = models.CharField(max_length=50, blank=True, null=True)
+    feedback_unit_id = models.CharField(max_length=50, blank=True, null=True)
+    feedback_unit_type = models.CharField(max_length=50, blank=True, null=True)
+    feedback_system = models.CharField(max_length=100, blank=True, null=True)
+    eitdigital_feedback_user_id = models.CharField(max_length=50)
+    feedback_rating = models.IntegerField(blank=True, null=True)
+    feedback_max_rating = models.IntegerField(blank=True, null=True)
+    detailed_context = models.CharField(max_length=200, blank=True, null=True)
+    feedback_ts = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = "feedback_item_ratings"
