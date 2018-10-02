@@ -30,9 +30,11 @@ install:
   - pipenv sync --dev
 
 before_script:
-  - git clone git@github.com:cornytrace/SEP-Autumn-2018-Group2-Coursera.git --branch coursera_db --single-branch --depth 1 $HOME/db/
   - psql -U postgres -c 'create database test_coursera;'
-  - cd $HOME/db/ && ./reconstruct.sh && cd -
-  - psql -U postgres -d test_coursera -f $HOME/db/coursera.sql
+  - git checkout coursera_db
+  - ./reconstruct.sh
+  - psql -U postgres -d test_coursera -f coursera.sql
+  - rm coursera.sql
+  - git checkout @{-1}
 script:
   - pytest --cov
