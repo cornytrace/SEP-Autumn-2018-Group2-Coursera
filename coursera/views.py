@@ -4,8 +4,6 @@ from coursera.serializers import (
     VideoAnalyticsListSerializer,
     VideoAnalyticsSerializer,
 )
-from django.contrib.postgres.fields import JSONField
-from django.db.models.functions import Cast
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -37,10 +35,6 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
         return (
             super()
             .get_queryset()
-            .filter(
-                branch__in=list(
-                    self.request.user.courses.values_list("course_id", flat=True)
-                )
-            )
+            .filter(id__in=self.request.user.courses)
             .filter(branch=self.kwargs["course_id"], type=1)
         )
