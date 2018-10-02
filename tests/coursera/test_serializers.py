@@ -53,8 +53,8 @@ def test_serialize_course(coursera_course):
             (date(2018, 4, 1), 38),
             (date(2018, 5, 1), 41),
             (date(2018, 6, 1), 42),
-            (date(2018, 7, 1), 46),
-            (date(2018, 8, 1), 47),
+            (date(2018, 7, 1), 48),
+            (date(2018, 8, 1), 53),
         ],
         "leaving_learners_per_module": [
             ("sGiw3", 1337),
@@ -86,4 +86,4 @@ def test_serialize_course(coursera_course):
     }
     assert serializer.data.keys() == data.keys()
     for key, value in data.items():
-        assert type(serializer.data[key]) == type(value), key
+        assert type(serializer.data[key]) is type(value), key

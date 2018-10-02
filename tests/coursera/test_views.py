@@ -90,7 +90,7 @@ def test_course_analytics_view(teacher_api_client, coursera_course_id):
     }
     assert response.data.keys() == data.keys()
     for key, value in data.items():
-        assert type(response.data[key]) == type(value), key
+        assert type(response.data[key]) is type(value), key
 
 
 @pytest.mark.django_db
@@ -113,3 +113,20 @@ def test_video_analytics_view(
         )
     )
     assert response.status_code == 200, str(response.content)
+
+
+@pytest.mark.django_db
+def test_video_analytics_no_permissions(teacher_api_client, coursera_video_id):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:video-detail",
+            kwargs={
+                "course_id": "bmHtyVrIEee3CwoIJ_9DVg",
+                "item_id": coursera_video_id,
+            },
+        )
+    )
+    # TODO: this should raise a 403
+    assert (response.status_code == 404) or (
+        (response.status_code == 200) and (response.data == "[]")
+    ), str(response.content)
