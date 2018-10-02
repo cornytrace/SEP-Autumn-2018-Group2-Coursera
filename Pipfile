@@ -16,6 +16,7 @@ django-cors-middleware = "*"
 django-rest-framework = "*"
 django-dotenv = "*"
 sqlparse = "*"
+requests-oauthlib = "*"
 
 [dev-packages]
 "flake8" = "*"
@@ -30,6 +31,8 @@ factory-boy = "*"
 pytest-factoryboy = "*"
 rope = "*"
 pytest-freezegun = "*"
+bpython = "*"
+requests-mock = "*"
 
 [pipenv]
 allow_prereleases = true

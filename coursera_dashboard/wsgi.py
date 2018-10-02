@@ -1,5 +1,5 @@
 """
-WSGI config for eit_dashboard project.
+WSGI config for coursera_dashboard project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -21,6 +21,6 @@ with warnings.catch_warnings():
         )
     )
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "eit_dashboard.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "coursera_dashboard.settings")
 
 application = get_wsgi_application()

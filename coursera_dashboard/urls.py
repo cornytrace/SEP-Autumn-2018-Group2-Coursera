@@ -1,4 +1,4 @@
-"""eit_dashboard URL Configuration
+"""coursera_dashboard URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/2.0/topics/http/urls/
@@ -14,20 +14,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-import oauth2_provider.urls
-from django.contrib import admin
 from django.urls import include, path
 
 import coursera.routers
-import courses.routers
-import users.routers
-import users.urls
 
-urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("o/", include((oauth2_provider.urls.base_urlpatterns, "oauth2_provider"))),
-    path("accounts/", include(users.urls)),
-    path("api/", include(coursera.routers)),
-    path("api/", include(users.routers)),
-    path("api/", include(courses.routers)),
-]
+urlpatterns = [path("api/", include(coursera.routers))]

@@ -3,7 +3,7 @@ branch = true
 source = .
 omit =
     manage.py
-    eit_dashboard/wsgi.py
+    coursera_dashboard/wsgi.py
     tests/*
     */migrations/*
 

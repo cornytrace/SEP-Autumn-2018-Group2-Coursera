@@ -12,7 +12,7 @@ if __name__ == "__main__":
             os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
         )
 
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "eit_dashboard.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "coursera_dashboard.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

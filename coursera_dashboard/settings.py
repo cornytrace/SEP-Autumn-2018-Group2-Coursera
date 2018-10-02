@@ -1,5 +1,5 @@
 """
-Django settings for eit_dashboard project.
+Django settings for coursera_dashboard project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/2.0/topics/settings/
@@ -21,9 +21,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY", "7jsd%1+=$8(#^==_x71tx%h%gest13t9-fggzbp2j*(x8%scz="
-)
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 
 FRONTEND_URL = os.environ.get("DASHIT_FRONTEND_URL", "http://localhost:8080/#/")
 
@@ -32,34 +30,18 @@ DEBUG = True
 
 # Application definition
 
-INSTALLED_APPS = [
-    "users.apps.UsersConfig",
-    "courses.apps.CoursesConfig",
-    "coursera.apps.CourseraConfig",
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "oauth2_provider",
-    "rest_framework",
-    "corsheaders",
-]
+INSTALLED_APPS = ["coursera.apps.CourseraConfig", "rest_framework"]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
     "oauth2_provider.middleware.OAuth2TokenMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "eit_dashboard.urls"
+ROOT_URLCONF = "coursera_dashboard.urls"
 
 TEMPLATES = [
     {
@@ -78,37 +60,17 @@ TEMPLATES = [
     }
 ]
 
-WSGI_APPLICATION = "eit_dashboard.wsgi.application"
+WSGI_APPLICATION = "coursera_dashboard.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-    },
-    "coursera": {"ENGINE": "django.db.backends.dummy", "NAME": "coursera"},
-}
+DATABASES = {"default": dj_database_url.config()}
 
-DATABASE_ROUTERS = ["eit_dashboard.db_router.DatabaseRouter"]
+DATABASE_ROUTERS = ["coursera_dashboard.db_router.DatabaseRouter"]
 
-AUTH_USER_MODEL = "users.User"
-
-AUTHENTICATION_BACKENDS = [
-    "oauth2_provider.backends.OAuth2Backend",
-    "django.contrib.auth.backends.ModelBackend",
-]
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
-]
+AUTHENTICATION_BACKENDS = ["auth.backends.OAuth2Backend"]
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
@@ -118,11 +80,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
-# Change 'default' database configuration with $DATABASE_URL.
-DATABASES["default"].update(dj_database_url.config())
-# Change 'coursera' database configuration with $COURSERA_DATABASE_URL.
-DATABASES["coursera"].update(dj_database_url.config("COURSERA_DATABASE_URL"))
 
 # Allow all host headers
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "dashit.win.tue.nl"]
