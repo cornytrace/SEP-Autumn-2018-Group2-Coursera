@@ -1,6 +1,6 @@
 # SEP Autumn 2018 Group 2 EIT-Dashboard
 
-[![Build Status](https://travis-ci.com/cornytrace/SEP-Autumn-2018-Group2-Backend.svg?token=ksRe83PxhypHvSJboCmE&branch=master)](https://travis-ci.com/cornytrace/SEP-Autumn-2018-Group2-Backend)
+[![Build Status](https://travis-ci.com/cornytrace/SEP-Autumn-2018-Group2-Coursera.svg?token=ksRe83PxhypHvSJboCmE&branch=master)](https://travis-ci.com/cornytrace/SEP-Autumn-2018-Group2-Coursera)
 
 ## Installation
 
