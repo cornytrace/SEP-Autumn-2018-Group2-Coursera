@@ -35,6 +35,6 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
         return (
             super()
             .get_queryset()
-            .filter(id__in=self.request.user.courses)
+            .filter(branch__in=self.request.user.courses)
             .filter(branch=self.kwargs["course_id"], type=1)
         )

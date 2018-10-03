@@ -58,7 +58,7 @@ class ItemRating(models.Model):
     feedback_unit_id = models.CharField(max_length=50, blank=True, null=True)
     feedback_unit_type = models.CharField(max_length=50, blank=True, null=True)
     feedback_system = models.CharField(max_length=100, blank=True, null=True)
-    eitdigital_feedback_user_id = models.CharField(max_length=50)
+    eitdigital_user_id = models.CharField(max_length=50)
     feedback_rating = models.IntegerField(blank=True, null=True)
     feedback_max_rating = models.IntegerField(blank=True, null=True)
     detailed_context = models.CharField(max_length=200, blank=True, null=True)

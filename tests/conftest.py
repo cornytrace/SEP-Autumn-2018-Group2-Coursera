@@ -15,6 +15,11 @@ def coursera_course_id():
 
 
 @pytest.fixture
+def coursera_video_id():
+    return "jx3EZ"
+
+
+@pytest.fixture
 def coursera_course(coursera_course_id):
     return Course.objects.get(pk=coursera_course_id)
 

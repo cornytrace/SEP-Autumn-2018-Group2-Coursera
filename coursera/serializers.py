@@ -112,9 +112,7 @@ class VideoAnalyticsSerializer(VideoAnalyticsListSerializer):
                 feedback_system="LIKE_OR_DISLIKE",
                 feedback_rating=1,
             ).aggregate(
-                video_likes=Coalesce(
-                    Count("eitdigital_feedback_user_id", distinct=True), 0
-                )
+                video_likes=Coalesce(Count("eitdigital_user_id", distinct=True), 0)
             )[
                 "video_likes"
             ]
@@ -129,9 +127,7 @@ class VideoAnalyticsSerializer(VideoAnalyticsListSerializer):
                 feedback_system="LIKE_OR_DISLIKE",
                 feedback_rating=0,
             ).aggregate(
-                video_likes=Coalesce(
-                    Count("eitdigital_feedback_user_id", distinct=True), 0
-                )
+                video_likes=Coalesce(Count("eitdigital_user_id", distinct=True), 0)
             )[
                 "video_likes"
             ]

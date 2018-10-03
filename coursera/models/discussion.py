@@ -7,7 +7,7 @@ class DiscussionQuestion(models.Model):
     id = models.CharField(
         max_length=50, primary_key=True, db_column="discussion_question_id"
     )
-    eitdigital_discussions_user_id = models.CharField(max_length=50)
+    eitdigital_user_id = models.CharField(max_length=50)
     discussion_question_title = models.CharField(
         max_length=20000, blank=True, null=True
     )
