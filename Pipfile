@@ -38,5 +38,5 @@ requests-mock = "*"
 allow_prereleases = true
 
 [scripts]
-server = "python manage.py runserver"
+server = "python manage.py runserver 8001"
 migrate = "python manage.py migrate"
