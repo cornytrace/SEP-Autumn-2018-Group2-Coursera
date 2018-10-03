@@ -44,7 +44,7 @@ def valid_token_mock(requests_mock, teacher):
         "https://dashit.win.tue.nl/o/introspect/",
         json={
             "username": teacher.username,
-            "active": teacher.active,
+            "active": teacher.is_authenticated,
             "scope": "".join(teacher.scopes),
             "role": teacher.role,
             "courses": list(teacher.courses),
@@ -67,6 +67,11 @@ def unauthorized_request_mock(requests_mock):
 @pytest.fixture
 def rf():
     return APIRequestFactory()
+
+
+@pytest.fixture
+def api_client():
+    return APIClient()
 
 
 @pytest.fixture

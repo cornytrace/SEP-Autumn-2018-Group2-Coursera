@@ -1,14 +1,11 @@
 class User:
-    is_anonymous = False
-    is_authenticated = True
     is_staff = False
     is_superuser = False
-    is_active = True
 
     def __init__(
         self,
         username=None,
-        active=None,
+        active=False,
         scope=None,
         role=None,
         courses=None,
@@ -17,7 +14,8 @@ class User:
         **kwargs
     ):
         self.username = username
-        self.active = active
+        self.is_authenticated = self.is_active = active
+        self.is_anonymous = not active
         self.scopes = set(scope.split(" ") if scope else [])
         self.role = role
         self.courses = set(courses if courses else [])

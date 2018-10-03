@@ -39,7 +39,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "oauth2_provider.middleware.OAuth2TokenMiddleware",
+    "auth.middleware.OAuth2TokenMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -102,9 +102,8 @@ MEDIA_ROOT = os.environ.get("DJANGO_MEDIA_ROOT")
 CORS_ORIGIN_WHITELIST = ["localhost:8080", "cornytrace.github.io"]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
-    )
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "UNAUTHENTICATED_USER": "auth.users.User",
 }
 
 # EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
