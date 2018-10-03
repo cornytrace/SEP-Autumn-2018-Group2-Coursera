@@ -1,13 +1,14 @@
+from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import ReadOnlyModelViewSet
+
 from coursera.models import ClickstreamEvent, Course, Item
 from coursera.serializers import (
     CourseAnalyticsSerializer,
     VideoAnalyticsListSerializer,
     VideoAnalyticsSerializer,
 )
-from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.viewsets import ReadOnlyModelViewSet
 
 
 class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
@@ -21,15 +22,16 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
 
 class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
     queryset = Item.objects.all()
-    serializer_class = VideoAnalyticsSerializer
+    serializer_class = VideoAnalyticsListSerializer
     permission_classes = [IsAuthenticated]
 
     lookup_field = "item_id"
     lookup_url_kwarg = "item_id"
 
-    def list(self, request, course_id):
-        serializer = VideoAnalyticsListSerializer(self.get_queryset(), many=True)
-        return Response(serializer.data)
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return VideoAnalyticsSerializer
+        return super().get_serializer_class()
 
     def get_queryset(self):
         return (
