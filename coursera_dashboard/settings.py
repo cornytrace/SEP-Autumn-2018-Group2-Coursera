@@ -30,7 +30,11 @@ DEBUG = True
 
 # Application definition
 
-INSTALLED_APPS = ["coursera.apps.CourseraConfig", "rest_framework"]
+INSTALLED_APPS = [
+    "django.contrib.staticfiles",
+    "coursera.apps.CourseraConfig",
+    "rest_framework",
+]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
