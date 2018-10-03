@@ -31,7 +31,7 @@ def teacher(coursera_course_id):
         active=True,
         scope="read write",
         role="teacher",
-        courses=[coursera_course_id],
+        courses=[coursera_course_id, "oWawIRajEeWEjBINzvDOWw"],
     )
 
 

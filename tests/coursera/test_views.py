@@ -111,7 +111,24 @@ def test_video_analytics_view(
             kwargs={"course_id": coursera_course_id, "item_id": coursera_video_id},
         )
     )
+    keys = [
+        "id",
+        "branch",
+        "item_id",
+        "lesson",
+        "order",
+        "type",
+        "name",
+        "optional",
+        "watched_video",
+        "finished_video",
+        "video_comments",
+        "video_likes",
+        "video_dislikes",
+        "next_item",
+    ]
     assert response.status_code == 200, str(response.content)
+    assert list(response.data.keys()) == keys
 
 
 @pytest.mark.django_db
@@ -129,3 +146,50 @@ def test_video_analytics_no_permissions(teacher_api_client, coursera_video_id):
     assert (response.status_code == 404) or (
         (response.status_code == 200) and (response.data == "[]")
     ), str(response.content)
+
+
+@pytest.mark.django_db
+def test_video_analytics_view_no_next_item(
+    teacher_api_client, coursera_course_id, coursera_video_id
+):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:video-detail",
+            kwargs={"course_id": coursera_course_id, "item_id": coursera_video_id},
+        )
+    )
+    assert response.status_code == 200, str(response.content)
+    assert (
+        response.data["next_item"]["type"] == 0
+    ), "item type is not 0 when there is no next item"
+    assert (
+        response.data["next_item"]["item_id"] == ""
+    ), "item_id is not empty when there is no next item"
+
+
+@pytest.mark.django_db
+def test_video_analytics_view_next_item(
+    teacher_api_client, coursera_course_id, coursera_video_id
+):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:video-detail",
+            kwargs={"course_id": "oWawIRajEeWEjBINzvDOWw", "item_id": "Fzhxo"},
+        )
+    )
+    assert response.status_code == 200, str(response.content)
+    assert response.data["next_item"]["type"] == 1, "item type is not correct"
+    assert response.data["next_item"]["item_id"] == "X9UsA", "item_id is not correct"
+
+
+@pytest.mark.django_db
+def test_video_analytics_view_list(
+    teacher_api_client, coursera_course_id, coursera_video_id
+):
+    response = teacher_api_client.get(
+        reverse("coursera-api:video-list", kwargs={"course_id": coursera_course_id})
+    )
+    keys = ["id", "branch", "item_id", "lesson", "order", "type", "name", "optional"]
+    assert response.status_code == 200, str(response.content)
+    for item in response.data:
+        assert list(item.keys()) == keys
