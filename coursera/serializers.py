@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-from coursera.models import *
 from django.contrib.postgres.fields import JSONField
 from django.db.models import (
     Avg,
@@ -18,8 +17,10 @@ from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
 
+from coursera.models import *
 
-class VideoAnalyticsListSerializer(serializers.ModelSerializer):
+
+class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = [
@@ -34,17 +35,9 @@ class VideoAnalyticsListSerializer(serializers.ModelSerializer):
         ]
 
 
-class VideoAnalyticsSerializer(VideoAnalyticsListSerializer):
-    class Meta(VideoAnalyticsListSerializer.Meta):
-        fields = [
-            "id",
-            "branch",
-            "item_id",
-            "lesson",
-            "order",
-            "type",
-            "name",
-            "optional",
+class VideoAnalyticsSerializer(VideoSerializer):
+    class Meta(VideoSerializer.Meta):
+        fields = VideoSerializer.Meta.fields + [
             "watched_video",
             "finished_video",
             "video_comments",
@@ -145,14 +138,15 @@ class VideoAnalyticsSerializer(VideoAnalyticsListSerializer):
                 return {"item_id": "", "type": 0}
 
 
-class CourseAnalyticsSerializer(serializers.ModelSerializer):
+class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = [
-            "id",
-            "slug",
-            "name",
-            "level",
+        fields = ["id", "slug", "name", "level"]
+
+
+class CourseAnalyticsSerializer(CourseSerializer):
+    class Meta(CourseSerializer.Meta):
+        fields = CourseSerializer.Meta.fields + [
             "enrolled_learners",
             "leaving_learners",
             "finished_learners",

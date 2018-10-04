@@ -1,9 +1,10 @@
 from datetime import date, timedelta
 
 import pytest
+from django.urls import reverse
+
 from coursera.models import Course
 from coursera.serializers import CourseAnalyticsSerializer
-from django.urls import reverse
 
 
 @pytest.mark.django_db
@@ -102,6 +103,16 @@ def test_course_analytics_no_permissions(teacher_api_client):
 
 
 @pytest.mark.django_db
+def test_course_list_view(teacher_api_client):
+    response = teacher_api_client.get(reverse("coursera-api:course-list"))
+    keys = ["id", "slug", "name", "level"]
+    assert response.status_code == 200, str(response.content)
+    assert len(response.data) > 0, "no courses returned"
+    for item in response.data:
+        assert list(item.keys()) == keys
+
+
+@pytest.mark.django_db
 def test_video_analytics_view(
     teacher_api_client, coursera_course_id, coursera_video_id
 ):
@@ -183,13 +194,12 @@ def test_video_analytics_view_next_item(
 
 
 @pytest.mark.django_db
-def test_video_analytics_view_list(
-    teacher_api_client, coursera_course_id, coursera_video_id
-):
+def test_video_list_view(teacher_api_client, coursera_course_id):
     response = teacher_api_client.get(
         reverse("coursera-api:video-list", kwargs={"course_id": coursera_course_id})
     )
     keys = ["id", "branch", "item_id", "lesson", "order", "type", "name", "optional"]
     assert response.status_code == 200, str(response.content)
+    assert len(response.data) > 0, "no videos returned"
     for item in response.data:
         assert list(item.keys()) == keys
