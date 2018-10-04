@@ -90,7 +90,7 @@ def test_course_analytics_view(teacher_api_client, coursera_course_id):
     }
     assert response.data.keys() == data.keys()
     for key, value in data.items():
-        assert response.data[key] == value
+        assert type(response.data[key]) == type(value), key
 
 
 @pytest.mark.django_db

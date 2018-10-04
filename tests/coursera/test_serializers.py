@@ -86,4 +86,4 @@ def test_serialize_course(coursera_course):
     }
     assert serializer.data.keys() == data.keys()
     for key, value in data.items():
-        assert serializer.data[key] == value
+        assert type(serializer.data[key]) == type(value), key
