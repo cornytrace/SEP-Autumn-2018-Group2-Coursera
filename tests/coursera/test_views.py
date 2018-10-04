@@ -137,6 +137,7 @@ def test_video_analytics_view(
         "video_likes",
         "video_dislikes",
         "next_item",
+        "views_over_runtime",
     ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys

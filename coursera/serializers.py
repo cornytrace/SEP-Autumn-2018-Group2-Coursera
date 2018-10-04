@@ -44,6 +44,7 @@ class VideoAnalyticsSerializer(VideoSerializer):
             "video_likes",
             "video_dislikes",
             "next_item",
+            "views_over_runtime",
         ]
 
     watched_video = serializers.SerializerMethodField()
@@ -52,6 +53,7 @@ class VideoAnalyticsSerializer(VideoSerializer):
     video_likes = serializers.SerializerMethodField()
     video_dislikes = serializers.SerializerMethodField()
     next_item = serializers.SerializerMethodField()
+    views_over_runtime = serializers.SerializerMethodField()
 
     def get_watched_video(self, obj):
         try:
@@ -136,6 +138,16 @@ class VideoAnalyticsSerializer(VideoSerializer):
                 return {"item_id": item.item_id, "type": item.type.id}
             except Item.DoesNotExist:
                 return {"item_id": "", "type": 0}
+
+    def get_views_over_runtime(self, obj):
+        try:
+            return obj.views_over_runtime
+        except AttributeError:
+            return list(
+                obj.heartbeats.values_list("timecode")
+                .annotate(count=Count("timecode"))
+                .order_by("timecode")
+            )
 
 
 class CourseSerializer(serializers.ModelSerializer):
