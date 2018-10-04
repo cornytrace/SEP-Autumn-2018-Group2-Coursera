@@ -1,6 +1,6 @@
 from django.db import models
 
-__all__ = ["ClickstreamEvent"]
+__all__ = ["ClickstreamEvent", "Heartbeat"]
 
 
 class ClickstreamEvent(models.Model):
@@ -24,3 +24,24 @@ class ClickstreamEvent(models.Model):
     class Meta:
         managed = False
         db_table = "clickstream_events"
+
+
+class Heartbeat(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    course = models.ForeignKey(
+        "Course", on_delete=models.DO_NOTHING, related_name="heartbeats"
+    )
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser", on_delete=models.DO_NOTHING, related_name="heartbeats"
+    )
+    module = models.ForeignKey(
+        "Module", on_delete=models.DO_NOTHING, related_name="heartbeats"
+    )
+    item = models.ForeignKey(
+        "Item", on_delete=models.DO_NOTHING, related_name="heartbeats"
+    )
+    timecode = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "heartbeat_events"
