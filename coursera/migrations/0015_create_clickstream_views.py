@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             [
                 """
-                CREATE TABLE
+                CREATE MATERIALIZED VIEW
                     clickstream_events_view
                 AS
                 SELECT DISTINCT ON (id)
@@ -49,12 +49,12 @@ class Migration(migrations.Migration):
                 CREATE INDEX ON clickstream_events_view (key)
                 """,
             ],
-            reverse_sql="DROP TABLE IF EXISTS clickstream_events_view",
+            reverse_sql="DROP MATERIALIZED VIEW IF EXISTS clickstream_events_view",
         ),
         migrations.RunSQL(
             [
                 """
-                CREATE TABLE
+                CREATE MATERIALIZED VIEW
                     heartbeat_events
                 AS
                 WITH latest_branches AS (
@@ -94,6 +94,6 @@ class Migration(migrations.Migration):
                 CREATE INDEX ON heartbeat_events (eitdigital_user_id)
                 """,
             ],
-            reverse_sql="DROP TABLE IF EXISTS heartbeat_events",
+            reverse_sql="DROP MATERIALIZED VIEW IF EXISTS heartbeat_events",
         ),
     ]
