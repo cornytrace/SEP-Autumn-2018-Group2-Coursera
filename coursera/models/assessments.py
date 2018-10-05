@@ -38,7 +38,7 @@ class ItemAssessment(models.Model):
     )
     assessment = models.ForeignKey(
         "Assessment",
-        related_name="items",
+        related_name="item_assessments",
         on_delete=models.DO_NOTHING,
         db_column="assessment_id",
         max_length=50,
@@ -50,3 +50,27 @@ class ItemAssessment(models.Model):
         managed = False
         db_table = "course_branch_item_assessments_view"
         unique_together = ("item", "assessment")
+
+
+class AssessmentResponses(models.Model):
+    id = models.CharField(
+        max_length=50, primary_key=True, db_column="assessment_response_id"
+    )
+    assessment = models.ForeignKey(
+        "Assessment",
+        related_name="responses",
+        on_delete=models.DO_NOTHING,
+        db_column="assessment_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    action_id = models.CharField(db_column="assessment_action_id", max_length=50)
+    action_version = models.IntegerField(db_column="assessment_action_version")
+    question_id = models.CharField(db_column="assessment_question_id", max_length=50)
+    score = models.FloatField(db_column="assessment_response_score")
+    weighted_score = models.FloatField(db_column="assessment_response_weighted_score")
+
+    class Meta:
+        managed = False
+        db_table = "assessment_responses_view"

@@ -484,4 +484,101 @@ class Migration(migrations.Migration):
                 'managed': False,
             },
         ),
+        migrations.CreateModel(
+            name='Assessment',
+            fields=[
+                ('id', models.CharField(db_column='assessment_id', max_length=50, primary_key=True, serialize=False)),
+                ('base_id', models.CharField(db_column='assessment_base_id', max_length=50)),
+                ('version', models.IntegerField(db_column='assessment_version')),
+                ('type', models.CharField(db_column='assessment_type_desc', max_length=50)),
+                ('update_timestamp', models.DateTimeField(db_column='assessment_update_ts')),
+                ('passing_fraction', models.FloatField(db_column='assessment_passing_fraction')),
+            ],
+            options={
+                'db_table': 'assessments_view',
+                'managed': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='AssessmentResponses',
+            fields=[
+                ('id', models.CharField(db_column='assessment_response_id', max_length=50, primary_key=True, serialize=False)),
+                ('action_id', models.CharField(db_column='assessment_action_id', max_length=50)),
+                ('action_version', models.IntegerField(db_column='assessment_action_version')),
+                ('question_id', models.CharField(db_column='assessment_question_id', max_length=50)),
+                ('score', models.FloatField(db_column='assessment_response_score')),
+                ('weighted_score', models.FloatField(db_column='assessment_response_weighted_score')),
+            ],
+            options={
+                'db_table': 'assessment_responses_view',
+                'managed': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='DiscussionQuestion',
+            fields=[
+                ('id', models.CharField(db_column='discussion_question_id', max_length=50, primary_key=True, serialize=False)),
+                ('eitdigital_user_id', models.CharField(max_length=50)),
+                ('discussion_question_title', models.CharField(blank=True, max_length=20000, null=True)),
+                ('discussion_question_details', models.CharField(blank=True, max_length=20000, null=True)),
+                ('discussion_question_context_type', models.CharField(blank=True, max_length=50, null=True)),
+                ('course_id', models.CharField(blank=True, max_length=50, null=True)),
+                ('course_module_id', models.CharField(blank=True, max_length=50, null=True)),
+                ('course_item_id', models.CharField(blank=True, max_length=50, null=True)),
+                ('discussion_forum_id', models.CharField(blank=True, max_length=50, null=True)),
+                ('country_cd', models.CharField(blank=True, max_length=2, null=True)),
+                ('group_id', models.CharField(blank=True, max_length=50, null=True)),
+                ('discussion_question_created_ts', models.DateTimeField(blank=True, null=True)),
+                ('discussion_question_updated_ts', models.DateTimeField(blank=True, null=True)),
+            ],
+            options={
+                'db_table': 'discussion_questions',
+                'managed': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='Heartbeat',
+            fields=[
+                ('id', models.CharField(max_length=50, primary_key=True, serialize=False)),
+                ('timecode', models.IntegerField()),
+            ],
+            options={
+                'db_table': 'heartbeat_events',
+                'managed': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='ItemGrade',
+            fields=[
+                ('id', models.CharField(max_length=50, primary_key=True, serialize=False)),
+                ('timestamp', models.DateTimeField(db_column='course_item_grade_ts')),
+                ('passing_state', models.CharField(choices=[('not passed', 'Not passed'), ('passed', 'Passed'), ('verified passed', 'Verified passed')], db_column='course_item_passing_state_desc', max_length=255)),
+                ('overall', models.FloatField(db_column='course_item_grade_overall')),
+                ('verified', models.FloatField(db_column='course_item_grade_verified')),
+                ('pending', models.FloatField(db_column='course_item_grade_pending')),
+            ],
+            options={
+                'db_table': 'course_item_grades_view',
+                'managed': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='ItemRating',
+            fields=[
+                ('id', models.CharField(db_column='course_id', max_length=50, primary_key=True, serialize=False)),
+                ('course_item_id', models.CharField(blank=True, max_length=50, null=True)),
+                ('feedback_unit_id', models.CharField(blank=True, max_length=50, null=True)),
+                ('feedback_unit_type', models.CharField(blank=True, max_length=50, null=True)),
+                ('feedback_system', models.CharField(blank=True, max_length=100, null=True)),
+                ('eitdigital_user_id', models.CharField(max_length=50)),
+                ('feedback_rating', models.IntegerField(blank=True, null=True)),
+                ('feedback_max_rating', models.IntegerField(blank=True, null=True)),
+                ('detailed_context', models.CharField(blank=True, max_length=200, null=True)),
+                ('feedback_ts', models.DateTimeField(blank=True, null=True)),
+            ],
+            options={
+                'db_table': 'feedback_item_ratings',
+                'managed': False,
+            },
+        ),
     ]
