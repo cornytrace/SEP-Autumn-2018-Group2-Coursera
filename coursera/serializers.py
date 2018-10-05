@@ -35,6 +35,25 @@ class VideoSerializer(serializers.ModelSerializer):
         ]
 
 
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ["id", "slug", "name", "level"]
+
+
+class QuizSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assessment
+        fields = [
+            "id",
+            "base_id",
+            "version",
+            "type",
+            "update_timestamp",
+            "passing_fraction",
+        ]
+
+
 class VideoAnalyticsSerializer(VideoSerializer):
     class Meta(VideoSerializer.Meta):
         fields = VideoSerializer.Meta.fields + [
@@ -150,12 +169,6 @@ class VideoAnalyticsSerializer(VideoSerializer):
             )
 
 
-class CourseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Course
-        fields = ["id", "slug", "name", "level"]
-
-
 class CourseAnalyticsSerializer(CourseSerializer):
     class Meta(CourseSerializer.Meta):
         fields = CourseSerializer.Meta.fields + [
@@ -195,7 +208,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
         return Branch.objects.filter(
             pk=Subquery(
                 Branch.objects.filter(course_id=course_id)
-                .order_by("-authoring_course_branch_created_ts")
+                .order_by(F("authoring_course_branch_created_ts").desc(nulls_last=True))
                 .values("pk")[:1]
             )
         )
@@ -205,23 +218,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
         Return the number of members for `obj` with either a LEARNER
         or PRE_ENROLLED_LEARNER status.
         """
-        try:
-            return obj.enrolled_learners
-        except AttributeError:
-            return Course.objects.filter(pk=obj.pk).aggregate(
-                enrolled_learners=Coalesce(
-                    Count(
-                        "course_memberships",
-                        filter=Q(
-                            course_memberships__role__in=[
-                                CourseMembership.LEARNER,
-                                CourseMembership.PRE_ENROLLED_LEARNER,
-                            ]
-                        ),
-                    ),
-                    0,
-                )
-            )["enrolled_learners"]
+        return obj.enrolled_learners
 
     def get_leaving_learners(self, obj):
         """
@@ -258,86 +255,40 @@ class CourseAnalyticsSerializer(CourseSerializer):
         """
         Return the number of members for `obj` that have a a passing grade.
         """
-        try:
-            return obj.finished_learners
-        except AttributeError:
-            return Course.objects.filter(pk=obj.pk).aggregate(
-                finished_learners=Coalesce(
-                    Count(
-                        "grades",
-                        filter=Q(
-                            grades__passing_state__in=[
-                                Grade.PASSED,
-                                Grade.VERIFIED_PASSED,
-                            ]
-                        ),
-                    ),
-                    0,
-                )
-            )["finished_learners"]
+        return obj.finished_learners
 
     def get_modules(self, obj):
         """
         Return the number of modules for `obj`'s most recent branch.
         """
-        try:
-            return obj.modules
-        except AttributeError:
-            return self._filter_current_branch(obj.pk).aggregate(
-                modules=Coalesce(Count("modules"), 0)
-            )["modules"]
+        return obj.modules
 
     def get_quizzes(self, obj):
         """
         Return the number of quizzes (assessments) for `obj`'s most recent
         branch.
         """
-        try:
-            return obj.quizzes
-        except AttributeError:
-            return self._filter_current_branch(obj.pk).aggregate(
-                quizzes=Coalesce(Count("item_assessments"), 0)
-            )["quizzes"]
+        return obj.quizzes
 
     def get_assignments(self, obj):
         """
         Return the number of peer- and programming assignments for `obj`'s
         most recent branch.
         """
-        try:
-            return obj.assignments
-        except AttributeError:
-            return self._filter_current_branch(obj.pk).aggregate(
-                assignments=Coalesce(
-                    Count("item_programming_assignments")
-                    + Count("item_peer_assignments"),
-                    0,
-                )
-            )["assignments"]
+        return obj.assignments
 
     def get_videos(self, obj):
         """
         Return the number of videos (lecture items) for `obj`'s most recent
         branch.
         """
-        try:
-            return obj.videos
-        except AttributeError:
-            return self._filter_current_branch(obj.pk).aggregate(
-                videos=Coalesce(
-                    Count("items", filter=Q(items__type__description=ItemType.LECTURE)),
-                    0,
-                )
-            )["videos"]
+        return obj.videos
 
     def get_cohorts(self, obj):
         """
         Return the number of cohorts (on-demand sessions) for `obj`.
         """
-        try:
-            return obj.cohorts
-        except AttributeError:
-            return obj.sessions.count()
+        return obj.cohorts
 
     def get_ratings(self, obj):
         """
@@ -345,7 +296,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
         from either a first-week or end-of-course Net Promotor Score (NPS).
         """
         try:
-            return obj.ratings
+            ratings = obj.ratings
         except AttributeError:
             ratings = list(
                 CourseRating.objects.filter(course_id=obj.pk)
@@ -359,10 +310,10 @@ class CourseAnalyticsSerializer(CourseSerializer):
                 .annotate(Count("id"))
                 .order_by("rating")
             )
-            missing = set(range(1, 11)) - {rating for rating, _ in ratings}
-            for i in missing:
-                ratings.insert(i - 1, (i, 0))
-            return ratings
+        missing = set(range(1, 11)) - {rating for rating, _ in ratings}
+        for i in missing:
+            ratings.insert(i - 1, (i, 0))
+        return ratings
 
     def get_finished_learners_over_time(self, obj):
         """
@@ -416,14 +367,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
             )
 
     def get_average_time(self, obj):
-        try:
-            return obj.average_time
-        except AttributeError:
-            return (
-                obj.progress.values("eitdigital_user_id")
-                .annotate(time_spent=Max("timestamp") - Min("timestamp"))
-                .aggregate(average_time=Avg("time_spent"))
-            )["average_time"]
+        return obj.average_time
 
     def get_average_time_per_module(self, obj):
         try:
@@ -446,3 +390,8 @@ class CourseAnalyticsSerializer(CourseSerializer):
                 )
                 .order_by("order")
             )
+
+
+class QuizAnalyticsSerializer(VideoSerializer):
+    class Meta(QuizSerializer.Meta):
+        fields = QuizSerializer.Meta.fields + []

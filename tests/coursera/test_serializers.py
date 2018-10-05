@@ -1,13 +1,16 @@
 from datetime import date, timedelta
 
 import pytest
+
 from coursera.models import Course
 from coursera.serializers import CourseAnalyticsSerializer
+from coursera.views import CourseAnalyticsViewSet
 
 
 @pytest.mark.django_db
 @pytest.mark.freeze_time("2018-09-25 15:00")
-def test_serialize_course(coursera_course):
+def test_serialize_course(coursera_course_id):
+    coursera_course = CourseAnalyticsViewSet.queryset.get(pk=coursera_course_id)
     serializer = CourseAnalyticsSerializer(instance=coursera_course)
     data = {
         "id": "27_khHs4EeaXRRKK7mMjqw",

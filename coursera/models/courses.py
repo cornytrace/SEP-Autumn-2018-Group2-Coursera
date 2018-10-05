@@ -1,6 +1,139 @@
+from datetime import timedelta
+
 from django.db import models
+from django.db.models import Avg, Count, F, Max, Min, OuterRef, Q, Subquery, Window
+from django.db.models.functions import Coalesce, TruncMonth
+from django.utils.timezone import now
+
+from .activities import CourseProgress
+from .assessments import ItemAssessment
+from .course_structure import Item, ItemType, Module
+from .feedback import CourseRating
+from .grades import Grade
+from .sessions import OnDemandSession
+from .users import CourseMembership
 
 __all__ = ["Course", "Branch", "ItemProgrammingAssignment", "ItemPeerAssignment"]
+
+
+class CountSubquery(Subquery):
+    template = "(SELECT COUNT(*) FROM (%(subquery)s) _count)"
+    output_field = models.IntegerField()
+
+
+class AvgSubquery(Subquery):
+    template = "(SELECT AVG(%(field)s) FROM (%(subquery)s) _avg)"
+    output_field = models.FloatField()
+
+
+class CourseQuerySet(models.QuerySet):
+    def filter_current_branch(self):
+        return self.filter(
+            branches=Subquery(
+                Branch.objects.filter(course_id=OuterRef("id"))
+                .order_by(F("authoring_course_branch_created_ts").desc(nulls_last=True))
+                .values("pk")[:1]
+            )
+        )
+
+    def with_enrolled_learners(self):
+        return self.annotate(
+            enrolled_learners=CountSubquery(
+                CourseMembership.objects.filter(course_id=OuterRef("pk")).filter(
+                    role__in=[
+                        CourseMembership.LEARNER,
+                        CourseMembership.PRE_ENROLLED_LEARNER,
+                    ]
+                )
+            )
+        )
+
+    def with_leaving_learners(self):  # pragma: no cover
+        return self.annotate(
+            leaving_learners=CountSubquery(
+                CourseMembership.objects.filter(course_id=OuterRef("pk"))
+                .filter(
+                    role__in=[
+                        CourseMembership.LEARNER,
+                        CourseMembership.PRE_ENROLLED_LEARNER,
+                    ]
+                )
+                .values("eitdigital_user_id")
+                .difference(
+                    Grade.objects.filter(course_id=OuterRef("pk"))
+                    .filter(passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED])
+                    .values("eitdigital_user_id")
+                )
+                .difference(
+                    CourseProgress.objects.filter(course_id=OuterRef("pk"))
+                    .filter(timestamp__gt=now() - timedelta(weeks=6))
+                    .values("eitdigital_user_id")
+                )
+            )
+        )
+
+    def with_finished_learners(self):
+        return self.annotate(
+            finished_learners=CountSubquery(
+                Grade.objects.filter(course_id=OuterRef("pk")).filter(
+                    passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED]
+                )
+            )
+        )
+
+    def with_modules(self):
+        return self.annotate(
+            modules=CountSubquery(
+                Module.objects.filter(branch_id=OuterRef("branches__pk"))
+            )
+        )
+
+    def with_quizzes(self):
+        return self.annotate(
+            quizzes=CountSubquery(
+                ItemAssessment.objects.filter(branch_id=OuterRef("branches__pk"))
+            )
+        )
+
+    def with_assignments(self):
+        return self.annotate(
+            assignments=CountSubquery(
+                ItemProgrammingAssignment.objects.filter(
+                    branch_id=OuterRef("branches__pk")
+                )
+            )
+            + CountSubquery(
+                ItemPeerAssignment.objects.filter(branch_id=OuterRef("branches__pk"))
+            )
+        )
+
+    def with_videos(self):
+        return self.annotate(
+            videos=CountSubquery(
+                Item.objects.filter(branch_id=OuterRef("branches__pk")).filter(
+                    type__description=ItemType.LECTURE
+                )
+            )
+        )
+
+    def with_cohorts(self):
+        return self.annotate(
+            cohorts=CountSubquery(
+                OnDemandSession.objects.filter(course_id=OuterRef("pk"))
+            )
+        )
+
+    def with_average_time(self):
+        return self.annotate(
+            average_time=AvgSubquery(
+                CourseProgress.objects.filter(course_id=OuterRef("pk"))
+                .values("eitdigital_user_id")
+                .annotate(time_spent=Max("timestamp") - Min("timestamp"))
+                .values("time_spent"),
+                field="time_spent",
+                output_field=models.DurationField(),
+            )
+        )
 
 
 class Course(models.Model):
@@ -75,6 +208,8 @@ class Course(models.Model):
     header_image_s3_key = models.CharField(
         max_length=10000, blank=True, null=True, db_column="course_header_image_s3_key"
     )
+
+    objects = CourseQuerySet.as_manager()
 
     class Meta:
         managed = False

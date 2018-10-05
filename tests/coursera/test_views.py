@@ -204,3 +204,30 @@ def test_video_list_view(teacher_api_client, coursera_course_id):
     assert len(response.data) > 0, "no videos returned"
     for item in response.data:
         assert list(item.keys()) == keys
+
+
+@pytest.mark.django_db
+def test_quiz_analytics_view(
+    teacher_api_client, coursera_course_id, coursera_assessment_id
+):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:quiz-detail",
+            kwargs={"course_id": coursera_course_id, "pk": coursera_assessment_id},
+        )
+    )
+    keys = ["id", "base_id", "version", "type", "update_timestamp", "passing_fraction"]
+    assert response.status_code == 200, str(response.content)
+    assert list(response.data.keys()) == keys
+
+
+@pytest.mark.django_db
+def test_quiz_list_view(teacher_api_client, coursera_course_id):
+    response = teacher_api_client.get(
+        reverse("coursera-api:quiz-list", kwargs={"course_id": coursera_course_id})
+    )
+    keys = ["id", "base_id", "version", "type", "update_timestamp", "passing_fraction"]
+    assert response.status_code == 200, str(response.content)
+    assert len(response.data) > 0, "no quizzes returned"
+    for item in response.data:
+        assert list(item.keys()) == keys

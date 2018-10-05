@@ -1,12 +1,13 @@
 import os
 
 import pytest
-from auth.users import User
-from coursera.models import Course
-from coursera_dashboard.db_router import DatabaseRouter
 from django.conf import settings
 from pytest_factoryboy import register
 from rest_framework.test import APIClient, APIRequestFactory
+
+from auth.users import User
+from coursera.models import Course
+from coursera_dashboard.db_router import DatabaseRouter
 
 
 @pytest.fixture
@@ -17,6 +18,11 @@ def coursera_course_id():
 @pytest.fixture
 def coursera_video_id():
     return "jx3EZ"
+
+
+@pytest.fixture
+def coursera_assessment_id():
+    return "xnoY2YyIEeaZmBK0AXp1hQ@7"
 
 
 @pytest.fixture

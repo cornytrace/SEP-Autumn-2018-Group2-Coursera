@@ -4,7 +4,7 @@ __all__ = ["OnDemandSession"]
 
 
 class OnDemandSession(models.Model):
-    course_id = models.ForeignKey(
+    course = models.ForeignKey(
         "Course",
         related_name="sessions",
         on_delete=models.DO_NOTHING,
