@@ -1,12 +1,6 @@
 from django.db import models
 
-__all__ = [
-    "Course",
-    "Branch",
-    "ItemAssessment",
-    "ItemProgrammingAssignment",
-    "ItemPeerAssignment",
-]
+__all__ = ["Course", "Branch", "ItemProgrammingAssignment", "ItemPeerAssignment"]
 
 
 class Course(models.Model):
@@ -110,36 +104,6 @@ class Branch(models.Model):
     class Meta:
         managed = False
         db_table = "course_branches"
-
-
-class ItemAssessment(models.Model):
-    id = models.CharField(max_length=50, db_column="id", primary_key=True)
-    branch = models.ForeignKey(
-        "Branch",
-        related_name="item_assessments",
-        on_delete=models.DO_NOTHING,
-        db_column="course_branch_id",
-        max_length=50,
-        blank=True,
-        null=True,
-    )
-    item = models.ForeignKey(
-        "Item",
-        related_name="item_assessments",
-        on_delete=models.DO_NOTHING,
-        db_column="item_id",
-        max_length=50,
-        blank=True,
-        null=True,
-    )
-    assessment_id = models.CharField(
-        db_column="assessment_id", max_length=50, blank=True, null=True
-    )
-
-    class Meta:
-        managed = False
-        db_table = "course_branch_item_assessments_view"
-        unique_together = ("item", "assessment_id")
 
 
 class ItemProgrammingAssignment(models.Model):

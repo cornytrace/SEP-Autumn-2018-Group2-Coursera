@@ -1,4 +1,5 @@
 from .activities import *
+from .assessments import *
 from .clickstream import *
 from .course_structure import *
 from .courses import *
