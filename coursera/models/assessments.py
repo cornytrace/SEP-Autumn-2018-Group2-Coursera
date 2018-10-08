@@ -1,6 +1,6 @@
 from django.db import models
 
-__all__ = ["Assessment", "ItemAssessment"]
+__all__ = ["Assessment", "ItemAssessment", "AssessmentResponse"]
 
 
 class Assessment(models.Model):
@@ -54,7 +54,7 @@ class ItemAssessment(models.Model):
         unique_together = ("item", "assessment")
 
 
-class AssessmentResponses(models.Model):
+class AssessmentResponse(models.Model):
     id = models.CharField(
         max_length=50, primary_key=True, db_column="assessment_response_id"
     )
