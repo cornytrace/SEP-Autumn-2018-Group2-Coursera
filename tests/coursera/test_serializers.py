@@ -9,10 +9,13 @@ from coursera.views import CourseAnalyticsViewSet
 
 @pytest.mark.django_db
 @pytest.mark.freeze_time("2018-09-25 15:00")
-def test_serialize_course(coursera_course_id):
-    coursera_course = CourseAnalyticsViewSet.queryset.get(pk=coursera_course_id)
-    serializer = CourseAnalyticsSerializer(instance=coursera_course)
-    data = {
+def test_serialize_course(coursera_course_id, django_assert_max_num_queries):
+    with django_assert_max_num_queries(8) as captured:
+        coursera_course = CourseAnalyticsViewSet.queryset.get(pk=coursera_course_id)
+        serializer = CourseAnalyticsSerializer(instance=coursera_course)
+        data = serializer.data
+
+    expected_data = {
         "id": "27_khHs4EeaXRRKK7mMjqw",
         "slug": "design-thinking-entrepreneurship",
         "name": "Innovation & Entrepreneurship - From Design Thinking to Funding",
@@ -86,6 +89,6 @@ def test_serialize_course(coursera_course_id):
             ("DPfkU", timedelta(days=13, seconds=19833, microseconds=407895)),
         ],
     }
-    assert serializer.data.keys() == data.keys()
-    for key, value in data.items():
-        assert type(serializer.data[key]) is type(value), key
+    assert data.keys() == expected_data.keys()
+    for key, value in expected_data.items():
+        assert type(data[key]) is type(value), key

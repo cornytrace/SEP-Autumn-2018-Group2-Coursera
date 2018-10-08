@@ -15,18 +15,26 @@ class Migration(migrations.Migration):
                     course_progress_view
                 AS
                 SELECT
-                    MD5(MD5(MD5(MD5(MD5(MD5(course_id) || course_branch_id) || course_item_id) || eitdigital_user_id) || course_progress_state_type_id) || course_progress_ts)::varchar(50) as id,
+                    MD5(MD5(MD5(MD5(MD5(course_id) || course_item_id) || eitdigital_user_id) || course_progress_state_type_id) || course_progress_ts)::varchar(50) as id,
                     course_id,
-                    MD5(MD5(course_branch_id) || course_item_id)::varchar(50) as item_id,
+                    (
+                        SELECT DISTINCT ON (course_id)
+                            item_id
+                        FROM
+                            course_branch_items_view
+                            JOIN course_branch_lessons_view USING (course_branch_id, lesson_id)
+                            JOIN course_branch_modules_view USING (course_branch_id, module_id)
+                            JOIN course_branches USING (course_branch_id)
+                        WHERE
+                            course_id = course_progress.course_id
+                            AND course_item_id = course_progress.course_item_id
+                        ORDER BY course_id, authoring_course_branch_created_ts DESC NULLS LAST
+                    )::varchar(50) as item_id,
                     eitdigital_user_id,
                     course_progress_state_type_id,
                     course_progress_ts
                 FROM
                     course_progress
-                    JOIN course_branches USING (course_id)
-                    JOIN course_branch_modules USING (course_branch_id)
-                    JOIN course_branch_lessons USING (course_branch_id, course_module_id)
-                    JOIN course_branch_items USING (course_branch_id, course_lesson_id, course_item_id)
                 """,
                 """
                 CREATE UNIQUE INDEX ON course_progress_view (id)
