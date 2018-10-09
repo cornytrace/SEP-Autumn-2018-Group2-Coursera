@@ -224,6 +224,7 @@ def test_quiz_analytics_view(
         "update_timestamp",
         "passing_fraction",
         "grade_distribution",
+        "number_of_attempts",
     ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys

@@ -394,9 +394,13 @@ class CourseAnalyticsSerializer(CourseSerializer):
 
 class QuizAnalyticsSerializer(VideoSerializer):
     class Meta(QuizSerializer.Meta):
-        fields = QuizSerializer.Meta.fields + ["grade_distribution"]
+        fields = QuizSerializer.Meta.fields + [
+            "grade_distribution",
+            "number_of_attempts",
+        ]
 
     grade_distribution = serializers.SerializerMethodField()
+    number_of_attempts = serializers.SerializerMethodField()
 
     def get_grade_distribution(self, obj):
         return list(
@@ -404,4 +408,12 @@ class QuizAnalyticsSerializer(VideoSerializer):
             .values_list("overall")
             .order_by("overall")
             .annotate(num_grades=Count("eitdigital_user"))
+        )
+
+    def get_number_of_attempts(self, obj):
+        return list(
+            AssessmentAttempt.objects.filter(assessment=obj)
+            .values_list("number_of_attempts")
+            .order_by("number_of_attempts")
+            .annotate(num_people=Count("number_of_attempts"))
         )

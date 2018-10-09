@@ -1,6 +1,6 @@
 from django.db import models
 
-__all__ = ["Assessment", "ItemAssessment", "AssessmentResponse"]
+__all__ = ["Assessment", "ItemAssessment", "AssessmentResponse", "AssessmentAttempt"]
 
 
 class Assessment(models.Model):
@@ -78,3 +78,24 @@ class AssessmentResponse(models.Model):
     class Meta:
         managed = False
         db_table = "assessment_responses_view"
+
+
+class AssessmentAttempt(models.Model):
+    id = models.CharField(max_length=50, primary_key=True, db_column="id")
+    assessment = models.ForeignKey(
+        "Assessment",
+        related_name="attempts",
+        on_delete=models.DO_NOTHING,
+        db_column="assessment_id",
+    )
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser",
+        related_name="attempts",
+        on_delete=models.DO_NOTHING,
+        db_column="eitdigital_user_id",
+    )
+    number_of_attempts = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "assessment_attempts_view"
