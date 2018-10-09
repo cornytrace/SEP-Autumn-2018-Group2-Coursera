@@ -1,6 +1,6 @@
 from django.db import models
 
-__all__ = ["Assessment", "ItemAssessment", "AssessmentResponse", "AssessmentAttempt"]
+__all__ = ["Assessment", "ItemAssessment", "Response", "Attempt", "ResponseOption"]
 
 
 class Assessment(models.Model):
@@ -56,7 +56,7 @@ class ItemAssessment(models.Model):
         unique_together = ("item", "assessment")
 
 
-class AssessmentResponse(models.Model):
+class Response(models.Model):
     id = models.CharField(
         max_length=50, primary_key=True, db_column="assessment_response_id"
     )
@@ -65,9 +65,6 @@ class AssessmentResponse(models.Model):
         related_name="responses",
         on_delete=models.DO_NOTHING,
         db_column="assessment_id",
-        max_length=50,
-        blank=True,
-        null=True,
     )
     action_id = models.CharField(db_column="assessment_action_id", max_length=50)
     action_version = models.IntegerField(db_column="assessment_action_version")
@@ -80,7 +77,25 @@ class AssessmentResponse(models.Model):
         db_table = "assessment_responses_view"
 
 
-class AssessmentAttempt(models.Model):
+class ResponseOption(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    response = models.ForeignKey(
+        "Response",
+        related_name="response_options",
+        on_delete=models.DO_NOTHING,
+        db_column="assessment_response_id",
+    )
+    option_id = models.CharField(max_length=50, db_column="assessment_option_id")
+    correct = models.BooleanField(db_column="assessment_response_correct")
+    feedback = models.TextField(db_column="assessment_response_feedback")
+    selected = models.BooleanField(db_column="assessment_response_selected")
+
+    class Meta:
+        managed = False
+        db_table = "assessment_response_options_view"
+
+
+class Attempt(models.Model):
     id = models.CharField(max_length=50, primary_key=True, db_column="id")
     assessment = models.ForeignKey(
         "Assessment",

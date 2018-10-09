@@ -5,6 +5,8 @@ from django.db.models import Avg, Count, F, Max, Min, OuterRef, Q, Subquery, Win
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils.timezone import now
 
+from coursera.utils import AvgSubquery, CountSubquery
+
 from .activities import CourseProgress
 from .assessments import ItemAssessment
 from .course_structure import Item, ItemType, Module
@@ -14,16 +16,6 @@ from .sessions import OnDemandSession
 from .users import CourseMembership
 
 __all__ = ["Course", "Branch", "ItemProgrammingAssignment", "ItemPeerAssignment"]
-
-
-class CountSubquery(Subquery):
-    template = "(SELECT COUNT(*) FROM (%(subquery)s) _count)"
-    output_field = models.IntegerField()
-
-
-class AvgSubquery(Subquery):
-    template = "(SELECT AVG(%(field)s) FROM (%(subquery)s) _avg)"
-    output_field = models.FloatField()
 
 
 class CourseQuerySet(models.QuerySet):

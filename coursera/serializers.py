@@ -6,6 +6,8 @@ from django.db.models import (
     Count,
     DateField,
     F,
+    FloatField,
+    Func,
     Max,
     Min,
     Q,
@@ -18,6 +20,7 @@ from django.utils.timezone import now
 from rest_framework import serializers
 
 from coursera.models import *
+from coursera.utils import NullIf
 
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -397,10 +400,12 @@ class QuizAnalyticsSerializer(VideoSerializer):
         fields = QuizSerializer.Meta.fields + [
             "grade_distribution",
             "number_of_attempts",
+            "correct_ratio_per_question",
         ]
 
     grade_distribution = serializers.SerializerMethodField()
     number_of_attempts = serializers.SerializerMethodField()
+    correct_ratio_per_question = serializers.SerializerMethodField()
 
     def get_grade_distribution(self, obj):
         return list(
@@ -412,8 +417,35 @@ class QuizAnalyticsSerializer(VideoSerializer):
 
     def get_number_of_attempts(self, obj):
         return list(
-            AssessmentAttempt.objects.filter(assessment=obj)
+            Attempt.objects.filter(assessment=obj)
             .values_list("number_of_attempts")
             .order_by("number_of_attempts")
             .annotate(num_people=Count("number_of_attempts"))
+        )
+
+    def get_correct_ratio_per_question(self, obj):
+        return list(
+            Response.objects.filter(assessment=obj)
+            .values_list("question_id")
+            .order_by("question_id")
+            .annotate(
+                ratio=Cast(
+                    Count(
+                        "response_options__option_id",
+                        filter=Q(
+                            response_options__correct=True,
+                            response_options__selected=True,
+                        ),
+                    ),
+                    FloatField(),
+                )
+                / NullIf(
+                    Count(
+                        "response_options__option_id",
+                        filter=Q(response_options__selected=True),
+                    ),
+                    0,
+                    output_field=FloatField(),
+                )
+            )
         )
