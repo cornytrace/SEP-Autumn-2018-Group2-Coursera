@@ -394,4 +394,14 @@ class CourseAnalyticsSerializer(CourseSerializer):
 
 class QuizAnalyticsSerializer(VideoSerializer):
     class Meta(QuizSerializer.Meta):
-        fields = QuizSerializer.Meta.fields + []
+        fields = QuizSerializer.Meta.fields + ["grade_distribution"]
+
+    grade_distribution = serializers.SerializerMethodField()
+
+    def get_grade_distribution(self, obj):
+        return list(
+            ItemGrade.objects.filter(item__assessments=obj)
+            .values_list("overall")
+            .order_by("overall")
+            .annotate(num_grades=Count("eitdigital_user"))
+        )

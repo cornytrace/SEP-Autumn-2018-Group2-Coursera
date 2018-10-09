@@ -216,9 +216,34 @@ def test_quiz_analytics_view(
             kwargs={"course_id": coursera_course_id, "pk": coursera_assessment_id},
         )
     )
-    keys = ["id", "base_id", "version", "type", "update_timestamp", "passing_fraction"]
+    keys = [
+        "id",
+        "base_id",
+        "version",
+        "type",
+        "update_timestamp",
+        "passing_fraction",
+        "grade_distribution",
+    ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys
+
+
+@pytest.mark.django_db
+def test_quiz_analytics_no_permissions(teacher_api_client, coursera_assessment_id):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:quiz-detail",
+            kwargs={
+                "course_id": "bmHtyVrIEee3CwoIJ_9DVg",
+                "pk": coursera_assessment_id,
+            },
+        )
+    )
+    # TODO: this should raise a 403
+    assert (response.status_code == 404) or (
+        (response.status_code == 200) and (response.data == "[]")
+    ), str(response.content)
 
 
 @pytest.mark.django_db

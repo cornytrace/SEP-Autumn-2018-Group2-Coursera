@@ -11,7 +11,9 @@ class Assessment(models.Model):
     update_timestamp = models.DateTimeField(db_column="assessment_update_ts")
     passing_fraction = models.FloatField(db_column="assessment_passing_fraction")
 
-    items = models.ManyToManyField("Item", through="ItemAssessment")
+    items = models.ManyToManyField(
+        "Item", through="ItemAssessment", related_name="assessments"
+    )
 
     class Meta:
         managed = False
