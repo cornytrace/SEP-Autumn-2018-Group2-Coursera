@@ -233,6 +233,7 @@ def test_quiz_analytics_view(
         "passing_fraction",
         "average_grade",
         "grade_distribution",
+        "average_attempts",
         "number_of_attempts",
         "correct_ratio_per_question",
     ]

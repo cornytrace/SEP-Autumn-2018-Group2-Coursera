@@ -400,6 +400,7 @@ class QuizAnalyticsSerializer(VideoSerializer):
         fields = QuizSerializer.Meta.fields + [
             "average_grade",
             "grade_distribution",
+            "average_attempts",
             "number_of_attempts",
             "correct_ratio_per_question",
         ]
@@ -407,6 +408,7 @@ class QuizAnalyticsSerializer(VideoSerializer):
     average_grade = serializers.FloatField()
     grade_distribution = serializers.SerializerMethodField()
     number_of_attempts = serializers.SerializerMethodField()
+    average_attempts = serializers.SerializerMethodField()
     correct_ratio_per_question = serializers.SerializerMethodField()
 
     def get_grade_distribution(self, obj):
@@ -416,6 +418,11 @@ class QuizAnalyticsSerializer(VideoSerializer):
             .order_by("overall")
             .annotate(num_grades=Count("eitdigital_user"))
         )
+
+    def get_average_attempts(self, obj):
+        return Attempt.objects.filter(assessment=obj).aggregate(
+            average=Avg("number_of_attempts")
+        )["average"]
 
     def get_number_of_attempts(self, obj):
         return list(
