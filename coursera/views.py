@@ -63,7 +63,7 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
 
 
 class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
-    queryset = Assessment.objects.all()
+    queryset = Assessment.objects.with_average_grade()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 

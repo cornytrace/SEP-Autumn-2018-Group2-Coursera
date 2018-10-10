@@ -122,7 +122,7 @@ class CourseQuerySet(models.QuerySet):
                 .values("eitdigital_user_id")
                 .annotate(time_spent=Max("timestamp") - Min("timestamp"))
                 .values("time_spent"),
-                field="time_spent",
+                db_column="time_spent",
                 output_field=models.DurationField(),
             )
         )

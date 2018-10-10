@@ -11,5 +11,5 @@ class CountSubquery(Subquery):
 
 
 class AvgSubquery(Subquery):
-    template = "(SELECT AVG(%(field)s) FROM (%(subquery)s) _avg)"
+    template = "(SELECT AVG(%(db_column)s) FROM (%(subquery)s) _avg)"
     output_field = FloatField()

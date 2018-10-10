@@ -14,9 +14,6 @@ router.register("course-analytics", CourseAnalyticsViewSet)
 router.register(
     "video-analytics/(?P<course_id>[-\w]+)", VideoAnalyticsViewSet, base_name="video"
 )
-# router.register(
-#     "quiz-analytics/(?P<course_id>[-\w]+)", QuizAnalyticsViewSet, base_name="quiz"
-# )
 urlpatterns = router.urls + [
     path(
         "quiz-analytics/<slug:course_id>/",

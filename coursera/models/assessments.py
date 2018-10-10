@@ -1,6 +1,23 @@
 from django.db import models
+from django.db.models import OuterRef
+
+from coursera.utils import AvgSubquery, CountSubquery
+
+from .grades import ItemGrade
 
 __all__ = ["Assessment", "ItemAssessment", "Response", "Attempt", "ResponseOption"]
+
+
+class AssessmentQuerySet(models.QuerySet):
+    def with_average_grade(self):
+        return self.annotate(
+            average_grade=AvgSubquery(
+                ItemGrade.objects.filter(item__assessments=OuterRef("pk")).values(
+                    "overall"
+                ),
+                db_column="course_item_grade_overall",
+            )
+        )
 
 
 class Assessment(models.Model):
@@ -14,6 +31,8 @@ class Assessment(models.Model):
     items = models.ManyToManyField(
         "Item", through="ItemAssessment", related_name="assessments"
     )
+
+    objects = AssessmentQuerySet.as_manager()
 
     class Meta:
         managed = False

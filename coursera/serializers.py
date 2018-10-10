@@ -398,11 +398,13 @@ class CourseAnalyticsSerializer(CourseSerializer):
 class QuizAnalyticsSerializer(VideoSerializer):
     class Meta(QuizSerializer.Meta):
         fields = QuizSerializer.Meta.fields + [
+            "average_grade",
             "grade_distribution",
             "number_of_attempts",
             "correct_ratio_per_question",
         ]
 
+    average_grade = serializers.FloatField()
     grade_distribution = serializers.SerializerMethodField()
     number_of_attempts = serializers.SerializerMethodField()
     correct_ratio_per_question = serializers.SerializerMethodField()

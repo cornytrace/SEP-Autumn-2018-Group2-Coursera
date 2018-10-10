@@ -74,19 +74,19 @@ def test_course_analytics_view(teacher_api_client, coursera_course_id):
             ("DPfkU", 263),
         ],
         "average_time": timedelta(
-            days=20, hours=20, minutes=5, seconds=9, microseconds=461960
+            days=20, hours=20, minutes=5, seconds=9, microseconds=461_960
         ),
         "average_time_per_module": [
-            ("sGiw3", timedelta(days=13, seconds=67594, microseconds=396139)),
+            ("sGiw3", timedelta(days=13, seconds=67594, microseconds=396_139)),
             ("mtiDN", timedelta(days=12, seconds=33541, microseconds=27827)),
-            ("uNiMX", timedelta(days=18, seconds=44361, microseconds=173885)),
-            ("Cnbc7", timedelta(days=16, seconds=35902, microseconds=668189)),
-            ("Q5WbI", timedelta(days=18, seconds=23504, microseconds=143258)),
-            ("rXWW5", timedelta(days=16, seconds=62370, microseconds=129438)),
-            ("1TPfk", timedelta(days=10, seconds=69910, microseconds=959793)),
-            ("j2R4F", timedelta(days=11, seconds=59628, microseconds=305862)),
-            ("wIGCQ", timedelta(days=20, seconds=76575, microseconds=212452)),
-            ("DPfkU", timedelta(days=13, seconds=19833, microseconds=407895)),
+            ("uNiMX", timedelta(days=18, seconds=44361, microseconds=173_885)),
+            ("Cnbc7", timedelta(days=16, seconds=35902, microseconds=668_189)),
+            ("Q5WbI", timedelta(days=18, seconds=23504, microseconds=143_258)),
+            ("rXWW5", timedelta(days=16, seconds=62370, microseconds=129_438)),
+            ("1TPfk", timedelta(days=10, seconds=69910, microseconds=959_793)),
+            ("j2R4F", timedelta(days=11, seconds=59628, microseconds=305_862)),
+            ("wIGCQ", timedelta(days=20, seconds=76575, microseconds=212_452)),
+            ("DPfkU", timedelta(days=13, seconds=19833, microseconds=407_895)),
         ],
     }
     assert response.data.keys() == data.keys()
@@ -231,6 +231,7 @@ def test_quiz_analytics_view(
         "type",
         "update_timestamp",
         "passing_fraction",
+        "average_grade",
         "grade_distribution",
         "number_of_attempts",
         "correct_ratio_per_question",
@@ -289,6 +290,6 @@ def test_quiz_list_view(teacher_api_client, coursera_course_id):
     assert len(response.data) > 0, "no quizzes returned"
     for item in response.data:
         assert list(item.keys()) == keys
-    base_id_counter = Counter([quiz['base_id'] for quiz in response.data])
+    base_id_counter = Counter([quiz["base_id"] for quiz in response.data])
     for base_id, count in base_id_counter.items():
         assert count == 1, f"Encountered {key} more than once"
