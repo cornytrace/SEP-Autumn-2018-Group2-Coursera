@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import date, timedelta
 
 import pytest
@@ -259,6 +260,26 @@ def test_quiz_analytics_no_permissions(
 
 
 @pytest.mark.django_db
+def test_quiz_version_list_view(
+    teacher_api_client, coursera_course_id, coursera_assessment_base_id
+):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:quiz-list",
+            kwargs={
+                "course_id": coursera_course_id,
+                "base_id": coursera_assessment_base_id,
+            },
+        )
+    )
+    keys = ["id", "base_id", "version", "type", "update_timestamp", "passing_fraction"]
+    assert response.status_code == 200, str(response.content)
+    assert len(response.data) > 0, "no quizzes returned"
+    for item in response.data:
+        assert list(item.keys()) == keys
+
+
+@pytest.mark.django_db
 def test_quiz_list_view(teacher_api_client, coursera_course_id):
     response = teacher_api_client.get(
         reverse("coursera-api:quiz-list", kwargs={"course_id": coursera_course_id})
@@ -268,3 +289,6 @@ def test_quiz_list_view(teacher_api_client, coursera_course_id):
     assert len(response.data) > 0, "no quizzes returned"
     for item in response.data:
         assert list(item.keys()) == keys
+    base_id_counter = Counter([quiz['base_id'] for quiz in response.data])
+    for base_id, count in base_id_counter.items():
+        assert count == 1, f"Encountered {key} more than once"

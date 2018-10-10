@@ -26,6 +26,11 @@ urlpatterns = router.urls + [
                     "", QuizAnalyticsViewSet.as_view({"get": "list"}), name="quiz-list"
                 ),
                 path(
+                    "<slug:base_id>/",
+                    QuizAnalyticsViewSet.as_view({"get": "list"}),
+                    name="quiz-list",
+                ),
+                path(
                     "<slug:base_id>/<int:version>/",
                     QuizAnalyticsViewSet.as_view({"get": "retrieve"}),
                     name="quiz-detail",

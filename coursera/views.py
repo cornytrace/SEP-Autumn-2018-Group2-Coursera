@@ -1,3 +1,4 @@
+from django.db.models import OuterRef, Subquery
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -66,43 +67,29 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 
+    lookup_field = "version"
+
     def get_serializer_class(self):
         if self.action == "retrieve":
             return QuizAnalyticsSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
-        return (
+        queryset = (
             super()
             .get_queryset()
             .filter(item_assessments__branch__in=self.request.user.courses)
             .filter(item_assessments__branch=self.kwargs["course_id"])
+            .order_by("base_id", "version")
         )
-
-    def get_object(self):
-        """
-        Returns the object the view is displaying.
-
-        You may want to override this if you need to provide non-standard
-        queryset lookups.  Eg if objects are referenced using multiple
-        keyword arguments in the url conf.
-
-        Copied and modified from rest_framework.generics.GenericAPIView.
-        """
-        queryset = self.filter_queryset(self.get_queryset())
-
-        assert "base_id" in self.kwargs and "version" in self.kwargs, (
-            "Expected view %s to be called with URL keyword arguments "
-            'named "%s" and "%s".' % (self.__class__.__name__, "base_id", "version")
-        )
-
-        filter_kwargs = {
-            "base_id": self.kwargs["base_id"],
-            "version": self.kwargs["version"],
-        }
-        obj = get_object_or_404(queryset, **filter_kwargs)
-
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-
-        return obj
+        if "base_id" in self.kwargs:
+            queryset = queryset.filter(base_id=self.kwargs["base_id"])
+        else:
+            queryset = queryset.filter(
+                version=Subquery(
+                    Assessment.objects.filter(base_id=OuterRef("base_id"))
+                    .values("version")
+                    .order_by("-version")[:1]
+                )
+            )
+        return queryset
