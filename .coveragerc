@@ -6,6 +6,7 @@ omit =
     coursera_dashboard/wsgi.py
     tests/*
     */migrations/*
+    collectpytest.py
 
 [report]
 fail_under = 100
