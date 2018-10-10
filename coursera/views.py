@@ -78,3 +78,31 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
             .filter(item_assessments__branch__in=self.request.user.courses)
             .filter(item_assessments__branch=self.kwargs["course_id"])
         )
+
+    def get_object(self):
+        """
+        Returns the object the view is displaying.
+
+        You may want to override this if you need to provide non-standard
+        queryset lookups.  Eg if objects are referenced using multiple
+        keyword arguments in the url conf.
+
+        Copied and modified from rest_framework.generics.GenericAPIView.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+
+        assert "base_id" in self.kwargs and "version" in self.kwargs, (
+            "Expected view %s to be called with URL keyword arguments "
+            'named "%s" and "%s".' % (self.__class__.__name__, "base_id", "version")
+        )
+
+        filter_kwargs = {
+            "base_id": self.kwargs["base_id"],
+            "version": self.kwargs["version"],
+        }
+        obj = get_object_or_404(queryset, **filter_kwargs)
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj

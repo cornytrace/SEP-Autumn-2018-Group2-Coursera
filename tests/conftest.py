@@ -21,8 +21,13 @@ def coursera_video_id():
 
 
 @pytest.fixture
-def coursera_assessment_id():
-    return "xnoY2YyIEeaZmBK0AXp1hQ@7"
+def coursera_assessment_base_id():
+    return "xnoY2YyIEeaZmBK0AXp1hQ"
+
+
+@pytest.fixture
+def coursera_assessment_version():
+    return "7"
 
 
 @pytest.fixture

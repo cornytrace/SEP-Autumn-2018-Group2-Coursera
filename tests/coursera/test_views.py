@@ -208,12 +208,19 @@ def test_video_list_view(teacher_api_client, coursera_course_id):
 
 @pytest.mark.django_db
 def test_quiz_analytics_view(
-    teacher_api_client, coursera_course_id, coursera_assessment_id
+    teacher_api_client,
+    coursera_course_id,
+    coursera_assessment_base_id,
+    coursera_assessment_version,
 ):
     response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-detail",
-            kwargs={"course_id": coursera_course_id, "pk": coursera_assessment_id},
+            kwargs={
+                "course_id": coursera_course_id,
+                "base_id": coursera_assessment_base_id,
+                "version": coursera_assessment_version,
+            },
         )
     )
     keys = [
@@ -232,13 +239,16 @@ def test_quiz_analytics_view(
 
 
 @pytest.mark.django_db
-def test_quiz_analytics_no_permissions(teacher_api_client, coursera_assessment_id):
+def test_quiz_analytics_no_permissions(
+    teacher_api_client, coursera_assessment_base_id, coursera_assessment_version
+):
     response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-detail",
             kwargs={
                 "course_id": "bmHtyVrIEee3CwoIJ_9DVg",
-                "pk": coursera_assessment_id,
+                "base_id": coursera_assessment_base_id,
+                "version": coursera_assessment_version,
             },
         )
     )
