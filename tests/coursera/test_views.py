@@ -228,6 +228,7 @@ def test_quiz_analytics_view(
         "id",
         "base_id",
         "version",
+        "name",
         "type",
         "update_timestamp",
         "passing_fraction",
@@ -274,7 +275,15 @@ def test_quiz_version_list_view(
             },
         )
     )
-    keys = ["id", "base_id", "version", "type", "update_timestamp", "passing_fraction"]
+    keys = [
+        "id",
+        "base_id",
+        "version",
+        "name",
+        "type",
+        "update_timestamp",
+        "passing_fraction",
+    ]
     assert response.status_code == 200, str(response.content)
     assert len(response.data) > 0, "no quizzes returned"
     for item in response.data:
@@ -286,7 +295,15 @@ def test_quiz_list_view(teacher_api_client, coursera_course_id):
     response = teacher_api_client.get(
         reverse("coursera-api:quiz-list", kwargs={"course_id": coursera_course_id})
     )
-    keys = ["id", "base_id", "version", "type", "update_timestamp", "passing_fraction"]
+    keys = [
+        "id",
+        "base_id",
+        "version",
+        "name",
+        "type",
+        "update_timestamp",
+        "passing_fraction",
+    ]
     assert response.status_code == 200, str(response.content)
     assert len(response.data) > 0, "no quizzes returned"
     for item in response.data:

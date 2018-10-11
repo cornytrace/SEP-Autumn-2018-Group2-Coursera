@@ -51,10 +51,13 @@ class QuizSerializer(serializers.ModelSerializer):
             "id",
             "base_id",
             "version",
+            "name",
             "type",
             "update_timestamp",
             "passing_fraction",
         ]
+
+    name = serializers.CharField()
 
 
 class VideoAnalyticsSerializer(VideoSerializer):
@@ -395,7 +398,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
             )
 
 
-class QuizAnalyticsSerializer(VideoSerializer):
+class QuizAnalyticsSerializer(QuizSerializer):
     class Meta(QuizSerializer.Meta):
         fields = QuizSerializer.Meta.fields + [
             "average_grade",

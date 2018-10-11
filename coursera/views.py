@@ -1,4 +1,4 @@
-from django.db.models import OuterRef, Subquery
+from django.db.models import F, OuterRef, Subquery
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -78,9 +78,10 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
         queryset = (
             super()
             .get_queryset()
-            .filter(item_assessments__branch__in=self.request.user.courses)
-            .filter(item_assessments__branch=self.kwargs["course_id"])
+            .filter(items__branch__in=self.request.user.courses)
+            .filter(items__branch=self.kwargs["course_id"])
             .order_by("base_id", "version")
+            .annotate(name=F("items__name"))
         )
         if "base_id" in self.kwargs:
             queryset = queryset.filter(base_id=self.kwargs["base_id"])
