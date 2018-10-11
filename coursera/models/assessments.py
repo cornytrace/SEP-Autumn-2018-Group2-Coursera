@@ -5,7 +5,14 @@ from coursera.utils import AvgSubquery, CountSubquery
 
 from .grades import ItemGrade
 
-__all__ = ["Assessment", "ItemAssessment", "Response", "Attempt", "ResponseOption"]
+__all__ = [
+    "Assessment",
+    "ItemAssessment",
+    "Response",
+    "AttemptCount",
+    "ResponseOption",
+    "LastAttempt",
+]
 
 
 class AssessmentQuerySet(models.QuerySet):
@@ -114,22 +121,32 @@ class ResponseOption(models.Model):
         db_table = "assessment_response_options_view"
 
 
-class Attempt(models.Model):
-    id = models.CharField(max_length=50, primary_key=True, db_column="id")
+class AttemptCount(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
     assessment = models.ForeignKey(
-        "Assessment",
-        related_name="attempts",
-        on_delete=models.DO_NOTHING,
-        db_column="assessment_id",
+        "Assessment", related_name="attempts", on_delete=models.DO_NOTHING
     )
     eitdigital_user = models.ForeignKey(
-        "EITDigitalUser",
-        related_name="attempts",
-        on_delete=models.DO_NOTHING,
-        db_column="eitdigital_user_id",
+        "EITDigitalUser", related_name="attempts", on_delete=models.DO_NOTHING
     )
     number_of_attempts = models.IntegerField()
 
     class Meta:
         managed = False
         db_table = "assessment_attempts_view"
+
+
+class LastAttempt(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    assessment = models.ForeignKey(
+        "Assessment", related_name="attempts", on_delete=models.DO_NOTHING
+    )
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser", related_name="attempts", on_delete=models.DO_NOTHING
+    )
+    timestamp = models.DateTimeField(db_column="assessment_action_ts")
+    score = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "assessment_last_attempt_view"

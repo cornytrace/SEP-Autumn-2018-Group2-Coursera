@@ -1,20 +1,8 @@
 from datetime import timedelta
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (
-    Avg,
-    Count,
-    DateField,
-    F,
-    FloatField,
-    Func,
-    Max,
-    Min,
-    Q,
-    Subquery,
-    Sum,
-    Window,
-)
+from django.db.models import (Avg, Count, DateField, F, FloatField, Func, Max,
+                              Min, Q, Subquery, Sum, Window)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -421,13 +409,13 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_average_attempts(self, obj):
-        return Attempt.objects.filter(assessment=obj).aggregate(
+        return AttemptCount.objects.filter(assessment=obj).aggregate(
             average=Avg("number_of_attempts")
         )["average"]
 
     def get_number_of_attempts(self, obj):
         return list(
-            Attempt.objects.filter(assessment=obj)
+            AttemptCount.objects.filter(assessment=obj)
             .values_list("number_of_attempts")
             .order_by("number_of_attempts")
             .annotate(num_people=Count("number_of_attempts"))
