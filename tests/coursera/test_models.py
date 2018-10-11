@@ -28,6 +28,6 @@ def test_can_access_foreign_keys(model):
     instance = model.objects.all()[0]
     for field in model._meta.fields:
         if field.many_to_one:
-            assert getattr(
+            assert hasattr(
                 instance, field.name
             ), f"Could not get foreign key {field.name} from model {model._meta.object_name}"

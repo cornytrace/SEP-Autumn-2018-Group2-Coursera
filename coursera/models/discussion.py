@@ -7,7 +7,11 @@ class DiscussionQuestion(models.Model):
     id = models.CharField(
         max_length=50, primary_key=True, db_column="discussion_question_id"
     )
-    eitdigital_user_id = models.CharField(max_length=50)
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser",
+        related_name="discussion_questions",
+        on_delete=models.DO_NOTHING,
+    )
     discussion_question_title = models.CharField(
         max_length=20000, blank=True, null=True
     )
@@ -17,9 +21,21 @@ class DiscussionQuestion(models.Model):
     discussion_question_context_type = models.CharField(
         max_length=50, blank=True, null=True
     )
-    course_id = models.CharField(max_length=50, blank=True, null=True)
-    course_module_id = models.CharField(max_length=50, blank=True, null=True)
-    course_item_id = models.CharField(max_length=50, blank=True, null=True)
+    course = models.ForeignKey(
+        "Course", related_name="discussion_questions", on_delete=models.DO_NOTHING
+    )
+    module = models.ForeignKey(
+        "Module",
+        related_name="discussion_questions",
+        on_delete=models.DO_NOTHING,
+        null=True,
+    )
+    item = models.ForeignKey(
+        "Item",
+        related_name="discussion_questions",
+        on_delete=models.DO_NOTHING,
+        null=True,
+    )
     discussion_forum_id = models.CharField(max_length=50, blank=True, null=True)
     country_cd = models.CharField(max_length=2, blank=True, null=True)
     group_id = models.CharField(max_length=50, blank=True, null=True)
@@ -28,4 +44,4 @@ class DiscussionQuestion(models.Model):
 
     class Meta:
         managed = False
-        db_table = "discussion_questions"
+        db_table = "discussion_questions_view"

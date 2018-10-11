@@ -115,9 +115,9 @@ class VideoAnalyticsSerializer(VideoSerializer):
         try:
             return obj.video_comments
         except AttributeError:
-            return DiscussionQuestion.objects.filter(
-                course_id=obj.branch_id, course_item_id=obj.item_id
-            ).aggregate(video_comments=Coalesce(Count("pk"), 0))["video_comments"]
+            return DiscussionQuestion.objects.filter(item=obj).aggregate(
+                video_comments=Coalesce(Count("pk"), 0)
+            )["video_comments"]
 
     def get_video_likes(self, obj):
         try:
