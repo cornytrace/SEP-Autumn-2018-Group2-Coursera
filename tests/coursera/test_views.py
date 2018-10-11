@@ -237,6 +237,9 @@ def test_quiz_analytics_view(
         "average_attempts",
         "number_of_attempts",
         "correct_ratio_per_question",
+        "quiz_comments",
+        "quiz_likes",
+        "quiz_dislikes",
     ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys

@@ -74,6 +74,11 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
             return QuizAnalyticsSerializer
         return super().get_serializer_class()
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["course_id"] = self.kwargs["course_id"]
+        return context
+
     def get_queryset(self):
         queryset = (
             super()
