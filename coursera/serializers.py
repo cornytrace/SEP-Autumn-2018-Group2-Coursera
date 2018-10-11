@@ -126,8 +126,8 @@ class VideoAnalyticsSerializer(VideoSerializer):
             return ItemRating.objects.filter(
                 id=obj.branch_id,
                 course_item_id=obj.item_id,
-                feedback_system="LIKE_OR_DISLIKE",
-                feedback_rating=1,
+                system="LIKE_OR_DISLIKE",
+                rating=1,
             ).aggregate(
                 video_likes=Coalesce(Count("eitdigital_user_id", distinct=True), 0)
             )[
@@ -141,8 +141,8 @@ class VideoAnalyticsSerializer(VideoSerializer):
             return ItemRating.objects.filter(
                 id=obj.branch_id,
                 course_item_id=obj.item_id,
-                feedback_system="LIKE_OR_DISLIKE",
-                feedback_rating=0,
+                system="LIKE_OR_DISLIKE",
+                rating=0,
             ).aggregate(
                 video_likes=Coalesce(Count("eitdigital_user_id", distinct=True), 0)
             )[
@@ -403,6 +403,9 @@ class QuizAnalyticsSerializer(VideoSerializer):
             "average_attempts",
             "number_of_attempts",
             "correct_ratio_per_question",
+            "quiz_comments",
+            "quiz_likes",
+            "quiz_dislikes",
         ]
 
     average_grade = serializers.FloatField()
@@ -410,10 +413,15 @@ class QuizAnalyticsSerializer(VideoSerializer):
     number_of_attempts = serializers.SerializerMethodField()
     average_attempts = serializers.SerializerMethodField()
     correct_ratio_per_question = serializers.SerializerMethodField()
+    quiz_comments = serializers.SerializerMethodField()
+    quiz_likes = serializers.SerializerMethodField()
+    quiz_dislikes = serializers.SerializerMethodField()
 
     def get_grade_distribution(self, obj):
         return list(
-            ItemGrade.objects.filter(item__assessments=obj)
+            ItemGrade.objects.filter(
+                item__assessments=obj, course=self.context["course_id"]
+            )
             .values_list("overall")
             .order_by("overall")
             .annotate(num_grades=Count("eitdigital_user"))
@@ -458,3 +466,26 @@ class QuizAnalyticsSerializer(VideoSerializer):
                 )
             )
         )
+
+    def get_quiz_comments(self, obj):
+        return DiscussionQuestion.objects.filter(
+            item__assessment=obj, course_id=self.context["course_id"]
+        ).aggregate(quiz_comments=Coalesce(Count("pk"), 0))["quiz_comments"]
+
+    def get_quiz_likes(self, obj):
+        return ItemRating.objects.filter(
+            item__assessments=obj,
+            course_id=self.context["course_id"],
+            system="LIKE_OR_DISLIKE",
+        ).aggregate(quiz_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0))[
+            "quiz_likes"
+        ]
+
+    def get_quiz_dislikes(self, obj):
+        return ItemRating.objects.filter(
+            item__assessments=obj,
+            course_id=self.context["course_id"],
+            system="LIKE_OR_DISLIKE",
+        ).aggregate(quiz_dislikes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
+            "quiz_dislikes"
+        ]

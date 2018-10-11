@@ -53,16 +53,23 @@ class CourseRating(models.Model):
 
 
 class ItemRating(models.Model):
-    id = models.CharField(max_length=50, primary_key=True, db_column="course_id")
-    course_item_id = models.CharField(max_length=50, blank=True, null=True)
-    feedback_unit_id = models.CharField(max_length=50, blank=True, null=True)
-    feedback_unit_type = models.CharField(max_length=50, blank=True, null=True)
-    feedback_system = models.CharField(max_length=100, blank=True, null=True)
-    eitdigital_user_id = models.CharField(max_length=50)
-    feedback_rating = models.IntegerField(blank=True, null=True)
-    feedback_max_rating = models.IntegerField(blank=True, null=True)
+    id = models.CharField(max_length=50, primary_key=True)
+    course = models.ForeignKey(
+        "Course", related_name="item_ratings", on_delete=models.DO_NOTHING
+    )
+    item_id = models.ForeignKey(
+        "Item", related_name="item_ratings", on_delete=models.DO_NOTHING
+    )
+    unit_id = models.CharField(max_length=50, db_column="feedback_unit_id")
+    unit_type = models.CharField(max_length=50, db_column="feedback_unit_type")
+    system = models.CharField(max_length=100, db_column="feedback_system")
+    eitdigital_user_id = models.ForeignKey(
+        "EITDigitalUser", related_name="item_ratings", on_delete=models.DO_NOTHING
+    )
+    rating = models.IntegerField(db_column="feedback_rating")
+    max_rating = models.IntegerField(db_column="feedback_max_rating")
     detailed_context = models.CharField(max_length=200, blank=True, null=True)
-    feedback_ts = models.DateTimeField(blank=True, null=True)
+    timestamp = models.DateTimeField(db_column="feedback_ts")
 
     class Meta:
         managed = False
