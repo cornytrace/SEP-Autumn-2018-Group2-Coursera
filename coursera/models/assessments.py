@@ -139,10 +139,10 @@ class AttemptCount(models.Model):
 class LastAttempt(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
     assessment = models.ForeignKey(
-        "Assessment", related_name="attempts", on_delete=models.DO_NOTHING
+        "Assessment", related_name="last_attempts", on_delete=models.DO_NOTHING
     )
     eitdigital_user = models.ForeignKey(
-        "EITDigitalUser", related_name="attempts", on_delete=models.DO_NOTHING
+        "EITDigitalUser", related_name="last_attempts", on_delete=models.DO_NOTHING
     )
     timestamp = models.DateTimeField(db_column="assessment_action_ts")
     score = models.FloatField()

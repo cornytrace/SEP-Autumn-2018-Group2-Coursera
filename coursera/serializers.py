@@ -1,8 +1,20 @@
 from datetime import timedelta
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (Avg, Count, DateField, F, FloatField, Func, Max,
-                              Min, Q, Subquery, Sum, Window)
+from django.db.models import (
+    Avg,
+    Count,
+    DateField,
+    F,
+    FloatField,
+    Func,
+    Max,
+    Min,
+    Q,
+    Subquery,
+    Sum,
+    Window,
+)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -387,6 +399,8 @@ class QuizAnalyticsSerializer(QuizSerializer):
             "quiz_comments",
             "quiz_likes",
             "quiz_dislikes",
+            "last_attempt_average_grade",
+            "last_attempt_grade_distribution",
         ]
 
     average_grade = serializers.FloatField()
@@ -397,6 +411,8 @@ class QuizAnalyticsSerializer(QuizSerializer):
     quiz_comments = serializers.SerializerMethodField()
     quiz_likes = serializers.SerializerMethodField()
     quiz_dislikes = serializers.SerializerMethodField()
+    last_attempt_average_grade = serializers.SerializerMethodField()
+    last_attempt_grade_distribution = serializers.SerializerMethodField()
 
     def get_grade_distribution(self, obj):
         return list(
@@ -470,3 +486,13 @@ class QuizAnalyticsSerializer(QuizSerializer):
         ).aggregate(quiz_dislikes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
             "quiz_dislikes"
         ]
+
+    def get_last_attempt_average_grade(self, obj):
+        return obj.last_attempts.aggregate(average_grade=Avg("score"))["average_grade"]
+
+    def get_last_attempt_grade_distribution(self, obj):
+        return list(
+            obj.last_attempts.values_list("score").annotate(
+                count=Count("eitdigital_user_id")
+            )
+        )
