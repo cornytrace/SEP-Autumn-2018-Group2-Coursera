@@ -1,8 +1,20 @@
 from datetime import timedelta
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (Avg, Count, DateField, F, FloatField, Func, Max,
-                              Min, Q, Subquery, Sum, Window)
+from django.db.models import (
+    Avg,
+    Count,
+    DateField,
+    F,
+    FloatField,
+    Func,
+    Max,
+    Min,
+    Q,
+    Subquery,
+    Sum,
+    Window,
+)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -116,7 +128,9 @@ class VideoAnalyticsSerializer(VideoSerializer):
             return GenericFilterSet(
                 self.context["request"].GET,
                 ItemRating.objects.filter(item=obj, system="LIKE_OR_DISLIKE"),
-            ).qs.aggregate(video_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0))[
+            ).qs.aggregate(
+                video_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0)
+            )[
                 "video_likes"
             ]
 
@@ -127,7 +141,9 @@ class VideoAnalyticsSerializer(VideoSerializer):
             return GenericFilterSet(
                 self.context["request"].GET,
                 ItemRating.objects.filter(item=obj, system="LIKE_OR_DISLIKE"),
-            ).qs.aggregate(video_likes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
+            ).qs.aggregate(
+                video_likes=Coalesce(Count("rating", filter=Q(rating=0)), 0)
+            )[
                 "video_likes"
             ]
 
@@ -148,7 +164,7 @@ class VideoAnalyticsSerializer(VideoSerializer):
             return obj.views_over_runtime
         except AttributeError:
             return list(
-                GenericFilterSet(
+                ClickstreamEventFilterSet(
                     self.context["request"].GET,
                     obj.heartbeats.values_list("timecode")
                     .annotate(count=Count("timecode"))
@@ -408,12 +424,15 @@ class QuizAnalyticsSerializer(QuizSerializer):
 
     def get_grade_distribution(self, obj):
         return list(
-            ItemGrade.objects.filter(
-                item__assessments=obj, course=self.context["course_id"]
-            )
-            .values_list("overall")
-            .order_by("overall")
-            .annotate(num_grades=Count("eitdigital_user"))
+            GenericFilterSet(
+                self.context["request"].GET,
+                ItemGrade.objects.filter(
+                    item__assessments=obj, course=self.context["course_id"]
+                )
+                .values_list("overall")
+                .order_by("overall")
+                .annotate(num_grades=Count("eitdigital_user")),
+            ).qs
         )
 
     def get_average_attempts(self, obj):
@@ -431,10 +450,12 @@ class QuizAnalyticsSerializer(QuizSerializer):
 
     def get_correct_ratio_per_question(self, obj):
         return list(
-            Response.objects.filter(assessment=obj)
-            .values_list("question_id")
-            .order_by("question_id")
-            .annotate(
+            GenericFilterSet(
+                self.context["request"].GET,
+                Response.objects.filter(assessment=obj)
+                .values_list("question_id")
+                .order_by("question_id"),
+            ).qs.annotate(
                 ratio=Cast(
                     Count(
                         "response_options__option_id",
@@ -457,34 +478,45 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_quiz_comments(self, obj):
-        return DiscussionQuestion.objects.filter(
-            item__assessments=obj, course_id=self.context["course_id"]
-        ).aggregate(quiz_comments=Coalesce(Count("pk"), 0))["quiz_comments"]
+        return GenericFilterSet(
+            self.context["request"].GET,
+            DiscussionQuestion.objects.filter(
+                item__assessments=obj, course_id=self.context["course_id"]
+            ),
+        ).qs.aggregate(quiz_comments=Coalesce(Count("pk"), 0))["quiz_comments"]
 
     def get_quiz_likes(self, obj):
-        return ItemRating.objects.filter(
-            item__assessments=obj,
-            course_id=self.context["course_id"],
-            system="LIKE_OR_DISLIKE",
-        ).aggregate(quiz_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0))[
+        return GenericFilterSet(
+            self.context["request"].GET,
+            ItemRating.objects.filter(
+                item__assessments=obj,
+                course_id=self.context["course_id"],
+                system="LIKE_OR_DISLIKE",
+            ),
+        ).qs.aggregate(quiz_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0))[
             "quiz_likes"
         ]
 
     def get_quiz_dislikes(self, obj):
-        return ItemRating.objects.filter(
-            item__assessments=obj,
-            course_id=self.context["course_id"],
-            system="LIKE_OR_DISLIKE",
-        ).aggregate(quiz_dislikes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
+        return GenericFilterSet(
+            self.context["request"].GET,
+            ItemRating.objects.filter(
+                item__assessments=obj,
+                course_id=self.context["course_id"],
+                system="LIKE_OR_DISLIKE",
+            ),
+        ).qs.aggregate(quiz_dislikes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
             "quiz_dislikes"
         ]
 
     def get_last_attempt_average_grade(self, obj):
-        return obj.last_attempts.aggregate(average_grade=Avg("score"))["average_grade"]
+        return GenericFilterSet(
+            self.context["request"].GET, obj.last_attempts.all()
+        ).qs.aggregate(average_grade=Avg("score"))["average_grade"]
 
     def get_last_attempt_grade_distribution(self, obj):
         return list(
-            obj.last_attempts.values_list("score").annotate(
-                count=Count("eitdigital_user_id")
-            )
+            GenericFilterSet(
+                self.context["request"].GET, obj.last_attempts.values_list("score")
+            ).qs.annotate(count=Count("eitdigital_user_id"))
         )

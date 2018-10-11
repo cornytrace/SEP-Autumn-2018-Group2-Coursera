@@ -97,10 +97,11 @@ class Response(models.Model):
     question_id = models.CharField(db_column="assessment_question_id", max_length=50)
     score = models.FloatField(db_column="assessment_response_score")
     weighted_score = models.FloatField(db_column="assessment_response_weighted_score")
+    timestamp = models.DateTimeField(db_column="assessment_action_ts")
 
     class Meta:
         managed = False
-        db_table = "assessment_responses_view"
+        db_table = "assessment_response_actions_view"
 
 
 class ResponseOption(models.Model):
