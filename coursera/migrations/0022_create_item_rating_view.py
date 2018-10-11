@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             [
                 """
-                CREATE TABLE
+                CREATE MATERIALIZED VIEW
                     feedback_item_ratings_view
                 AS
                 SELECT
@@ -55,6 +55,6 @@ class Migration(migrations.Migration):
                 CREATE INDEX ON feedback_item_ratings_view (item_id)
                 """,
             ],
-            reverse_sql="DROP TABLE IF EXISTS feedback_item_ratings_view",
+            reverse_sql="DROP MATERIALIZED VIEW IF EXISTS feedback_item_ratings_view",
         )
     ]

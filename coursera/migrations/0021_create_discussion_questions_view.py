@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             [
                 """
-                CREATE TABLE
+                CREATE MATERIALIZED VIEW
                     discussion_questions_view
                 AS
                 SELECT
@@ -61,6 +61,6 @@ class Migration(migrations.Migration):
                 CREATE INDEX ON discussion_questions_view (item_id)
                 """,
             ],
-            reverse_sql="DROP TABLE IF EXISTS discussion_questions_view",
+            reverse_sql="DROP MATERIALIZED VIEW IF EXISTS discussion_questions_view",
         )
     ]
