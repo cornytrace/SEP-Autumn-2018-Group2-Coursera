@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                         SELECT course_item_id
                         FROM course_branch_items bi
                         WHERE bi.course_branch_id = course_branches.course_branch_id
-                        AND bi.course_item_id = discussion_questions.course_item_id
+                        AND bi.course_item_id = feedback_item_ratings.course_item_id
                     ))::varchar(50) as item_id,
                     feedback_unit_id,
                     feedback_unit_type,
