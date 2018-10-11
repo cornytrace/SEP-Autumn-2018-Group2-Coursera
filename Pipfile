@@ -17,6 +17,7 @@ django-rest-framework = "*"
 django-dotenv = "*"
 sqlparse = "*"
 requests-oauthlib = "*"
+django-filter = "*"
 
 [dev-packages]
 "flake8" = "*"

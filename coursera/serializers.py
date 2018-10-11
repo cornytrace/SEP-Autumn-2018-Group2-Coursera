@@ -1,24 +1,13 @@
 from datetime import timedelta
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (
-    Avg,
-    Count,
-    DateField,
-    F,
-    FloatField,
-    Func,
-    Max,
-    Min,
-    Q,
-    Subquery,
-    Sum,
-    Window,
-)
+from django.db.models import (Avg, Count, DateField, F, FloatField, Func, Max,
+                              Min, Q, Subquery, Sum, Window)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
 
+from coursera.filters import ClickstreamEventFilterSet, GenericFilterSet
 from coursera.models import *
 from coursera.utils import NullIf
 
@@ -84,51 +73,50 @@ class VideoAnalyticsSerializer(VideoSerializer):
         try:
             return obj.watched_video
         except AttributeError:
-            return (
+            return ClickstreamEventFilterSet(
+                self.context["request"].GET,
                 ClickstreamEvent.objects.annotate(
                     value_json=Cast("value", output_field=JSONField())
-                )
-                .filter(
+                ).filter(
                     course_id=obj.branch_id,
                     value_json__item_id=obj.item_id,
                     key="start",
-                )
-                .aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
-                    "watchers_for_video"
-                ]
-            )
+                ),
+            ).qs.aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
+                "watchers_for_video"
+            ]
 
     def get_finished_video(self, obj):
         try:
             return obj.finished_video
         except AttributeError:
-            return (
+            return ClickstreamEventFilterSet(
+                self.context["request"].GET,
                 ClickstreamEvent.objects.annotate(
                     value_json=Cast("value", output_field=JSONField())
-                )
-                .filter(
+                ).filter(
                     course_id=obj.branch_id, value_json__item_id=obj.item_id, key="end"
-                )
-                .aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
-                    "watchers_for_video"
-                ]
-            )
+                ),
+            ).qs.aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
+                "watchers_for_video"
+            ]
 
     def get_video_comments(self, obj):
         try:
             return obj.video_comments
         except AttributeError:
-            return DiscussionQuestion.objects.filter(item=obj).aggregate(
-                video_comments=Coalesce(Count("pk"), 0)
-            )["video_comments"]
+            return GenericFilterSet(
+                self.context["request"].GET, DiscussionQuestion.objects.filter(item=obj)
+            ).qs.aggregate(video_comments=Coalesce(Count("pk"), 0))["video_comments"]
 
     def get_video_likes(self, obj):
         try:
             return obj.video_likes
         except AttributeError:
-            return ItemRating.objects.filter(
-                item=obj, system="LIKE_OR_DISLIKE"
-            ).aggregate(video_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0))[
+            return GenericFilterSet(
+                self.context["request"].GET,
+                ItemRating.objects.filter(item=obj, system="LIKE_OR_DISLIKE"),
+            ).qs.aggregate(video_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0))[
                 "video_likes"
             ]
 
@@ -136,9 +124,10 @@ class VideoAnalyticsSerializer(VideoSerializer):
         try:
             return obj.video_dislikes
         except AttributeError:
-            return ItemRating.objects.filter(
-                item=obj, system="LIKE_OR_DISLIKE"
-            ).aggregate(video_likes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
+            return GenericFilterSet(
+                self.context["request"].GET,
+                ItemRating.objects.filter(item=obj, system="LIKE_OR_DISLIKE"),
+            ).qs.aggregate(video_likes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
                 "video_likes"
             ]
 
@@ -159,9 +148,12 @@ class VideoAnalyticsSerializer(VideoSerializer):
             return obj.views_over_runtime
         except AttributeError:
             return list(
-                obj.heartbeats.values_list("timecode")
-                .annotate(count=Count("timecode"))
-                .order_by("timecode")
+                GenericFilterSet(
+                    self.context["request"].GET,
+                    obj.heartbeats.values_list("timecode")
+                    .annotate(count=Count("timecode"))
+                    .order_by("timecode"),
+                ).qs
             )
 
 

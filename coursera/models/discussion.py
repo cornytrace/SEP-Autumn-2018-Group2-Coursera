@@ -39,8 +39,8 @@ class DiscussionQuestion(models.Model):
     discussion_forum_id = models.CharField(max_length=50, blank=True, null=True)
     country_cd = models.CharField(max_length=2, blank=True, null=True)
     group_id = models.CharField(max_length=50, blank=True, null=True)
-    discussion_question_created_ts = models.DateTimeField(blank=True, null=True)
-    discussion_question_updated_ts = models.DateTimeField(blank=True, null=True)
+    timestamp = models.DateTimeField(db_column="discussion_question_created_ts")
+    updated_timestamp = models.DateTimeField(db_column="discussion_question_updated_ts")
 
     class Meta:
         managed = False

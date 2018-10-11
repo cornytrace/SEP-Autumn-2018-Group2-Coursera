@@ -41,6 +41,7 @@ class Heartbeat(models.Model):
         "Item", on_delete=models.DO_NOTHING, related_name="heartbeats"
     )
     timecode = models.IntegerField()
+    server_timestamp = models.DateTimeField()
 
     class Meta:
         managed = False

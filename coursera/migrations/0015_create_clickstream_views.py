@@ -63,12 +63,24 @@ class Migration(migrations.Migration):
                     FROM
                         course_branches
                     ORDER BY
-                        course_id, authoring_course_branch_created_ts DESC
+                        course_id, authoring_course_branch_created_ts DESC NULLS LAST
                 )
-                SELECT 
+                SELECT
                     id,
                     course_id,
                     hashed_user_id as eitdigital_user_id,
+                    hashed_session_cookie_id,
+                    server_timestamp,
+                    hashed_ip,
+                    user_agent,
+                    url,
+                    initial_referrer_url,
+                    browser_language,
+                    country_cd,
+                    region_cd,
+                    timezone,
+                    os,
+                    browser,
                     MD5(MD5(course_branch_id) || (value->>'module_id'))::varchar(50) as module_id,
                     MD5(MD5(course_branch_id) || (value->>'item_id'))::varchar(50) as item_id,
                     (div(((value->>'timecode')::real)::int, 5) * 5)::int as timecode
