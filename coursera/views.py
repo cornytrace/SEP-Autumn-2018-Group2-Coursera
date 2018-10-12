@@ -20,20 +20,16 @@ from coursera.serializers import (
 
 
 class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
-    queryset = (
-        Course.objects.filter_current_branch()
-        .with_enrolled_learners()
-        # .with_leaving_learners()
-        .with_finished_learners()
-        .with_modules()
-        .with_quizzes()
-        .with_assignments()
-        .with_videos()
-        .with_cohorts()
-        .with_average_time()
-    )
+    queryset = Course.objects.filter_current_branch()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
+
+    @cached_property
+    def generic_filterset(self):
+        def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
+
+        return partial(get_filterset, self.request.GET, request=self.request)
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -41,7 +37,20 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        return super().get_queryset().filter(id__in=self.request.user.courses)
+        return (
+            super()
+            .get_queryset()
+            .filter(id__in=self.request.user.courses)
+            .with_enrolled_learners(self.generic_filterset)
+            # .with_leaving_learners()
+            .with_finished_learners(self.generic_filterset)
+            .with_modules()
+            .with_quizzes()
+            .with_assignments()
+            .with_videos()
+            .with_cohorts(self.generic_filterset)
+            .with_average_time()
+        )
 
 
 class VideoAnalyticsViewSet(ReadOnlyModelViewSet):

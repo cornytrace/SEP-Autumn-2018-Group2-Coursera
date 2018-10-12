@@ -28,14 +28,16 @@ class CourseQuerySet(models.QuerySet):
             )
         )
 
-    def with_enrolled_learners(self):
+    def with_enrolled_learners(self, filter):
         return self.annotate(
             enrolled_learners=CountSubquery(
-                CourseMembership.objects.filter(course_id=OuterRef("pk")).filter(
-                    role__in=[
-                        CourseMembership.LEARNER,
-                        CourseMembership.PRE_ENROLLED_LEARNER,
-                    ]
+                filter(
+                    CourseMembership.objects.filter(course_id=OuterRef("pk")).filter(
+                        role__in=[
+                            CourseMembership.LEARNER,
+                            CourseMembership.PRE_ENROLLED_LEARNER,
+                        ]
+                    )
                 )
             )
         )
@@ -64,11 +66,13 @@ class CourseQuerySet(models.QuerySet):
             )
         )
 
-    def with_finished_learners(self):
+    def with_finished_learners(self, filter):
         return self.annotate(
             finished_learners=CountSubquery(
-                Grade.objects.filter(course_id=OuterRef("pk")).filter(
-                    passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED]
+                filter(
+                    Grade.objects.filter(course_id=OuterRef("pk")).filter(
+                        passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED]
+                    )
                 )
             )
         )
@@ -108,10 +112,10 @@ class CourseQuerySet(models.QuerySet):
             )
         )
 
-    def with_cohorts(self):
+    def with_cohorts(self, filter):
         return self.annotate(
             cohorts=CountSubquery(
-                OnDemandSession.objects.filter(course_id=OuterRef("pk"))
+                filter(OnDemandSession.objects.filter(course_id=OuterRef("pk")))
             )
         )
 

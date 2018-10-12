@@ -16,7 +16,7 @@ class OnDemandSession(models.Model):
     id = models.CharField(
         db_column="on_demand_session_id", max_length=50, primary_key=True
     )
-    start_timestamp = models.DateTimeField(
+    timestamp = models.DateTimeField(
         db_column="on_demand_sessions_start_ts", blank=True, null=True
     )
     end_timestamp = models.DateTimeField(

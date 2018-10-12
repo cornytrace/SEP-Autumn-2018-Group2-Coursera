@@ -292,7 +292,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
             ratings = obj.ratings
         except AttributeError:
             ratings = list(
-                CourseRating.objects.filter(course_id=obj.pk)
+                GenericFilterSet(self.context['request'].GET, CourseRating.objects.filter(course_id=obj.pk)).qs
                 .filter(
                     feedback_system__in=[
                         CourseRating.NPS_FIRST_WEEK,
@@ -317,8 +317,10 @@ class CourseAnalyticsSerializer(CourseSerializer):
             return obj.finished_learners_over_time
         except AttributeError:
             return list(
-                Grade.objects.filter(course_id=obj.pk)
-                .annotate(month=TruncMonth("timestamp", output_field=DateField()))
+                GenericFilterSet(
+                    self.context["request"].GET, Grade.objects.filter(course_id=obj.pk)
+                )
+                .qs.annotate(month=TruncMonth("timestamp", output_field=DateField()))
                 .annotate(
                     num_finished=Window(
                         Count(

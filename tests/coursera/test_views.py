@@ -10,10 +10,14 @@ from coursera.serializers import CourseAnalyticsSerializer
 
 @pytest.mark.django_db
 @pytest.mark.freeze_time("2018-09-25 15:00")
-def test_course_analytics_view(teacher_api_client, coursera_course_id):
-    response = teacher_api_client.get(
-        reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
-    )
+def test_course_analytics_view(
+    teacher_api_client, coursera_course_id, django_assert_max_num_queries
+):
+    with django_assert_max_num_queries(8) as captured:
+        response = teacher_api_client.get(
+            reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
+        )
+
     assert response.status_code == 200, str(response.content)
     data = {
         "id": "27_khHs4EeaXRRKK7mMjqw",
