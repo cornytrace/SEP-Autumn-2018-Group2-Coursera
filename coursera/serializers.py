@@ -156,9 +156,36 @@ class VideoAnalyticsSerializer(VideoSerializer):
                 item = Item.objects.get(
                     branch=obj.branch, lesson=obj.lesson, order=obj.order + 1
                 )
-                return {"item_id": item.item_id, "type": item.type.id}
+                if item.type.category == "quiz":
+                    passing_fraction = (
+                        item.item_grades.aggregate(
+                            passing_fraction=Count(
+                                "id",
+                                filter=Q(
+                                    passing_state__in=[
+                                        ItemGrade.PASSED,
+                                        ItemGrade.VERIFIED_PASSED,
+                                    ]
+                                ),
+                            )
+                        )["passing_fraction"]
+                        / item.item_grades.aggregate(passing_fraction=Count("id"))[
+                            "passing_fraction"
+                        ]
+                    )
+                    return {
+                        "item_id": item.item_id,
+                        "type": item.type.id,
+                        "category": item.type.category,
+                        "passing_fraction": passing_fraction,
+                    }
+                return {
+                    "item_id": item.item_id,
+                    "type": item.type.id,
+                    "category": item.type.category,
+                }
             except Item.DoesNotExist:
-                return {"item_id": "", "type": 0}
+                return {"item_id": "", "type": 0, "category": ""}
 
     def get_views_over_runtime(self, obj):
         try:

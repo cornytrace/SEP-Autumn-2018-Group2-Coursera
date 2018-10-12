@@ -347,6 +347,27 @@ def test_video_analytics_view_next_item(
 
 
 @pytest.mark.django_db
+def test_video_analytics_view_next_item_quiz(
+    teacher_api_client, coursera_course_id, coursera_video_id
+):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:video-detail",
+            kwargs={"course_id": "oWawIRajEeWEjBINzvDOWw", "item_id": "JkPC4"},
+        )
+    )
+    assert response.status_code == 200, str(response.content)
+    assert response.data["next_item"]["type"] == 6, "item type is not correct"
+    assert response.data["next_item"]["item_id"] == "bWwMd", "item_id is not correct"
+    assert (
+        response.data["next_item"]["category"] == "quiz"
+    ), "item category is not correct"
+    assert (
+        response.data["next_item"]["passing_fraction"] == 0.6801346801346801
+    ), "item passing fraction is not correct"
+
+
+@pytest.mark.django_db
 def test_video_list_view(teacher_api_client, coursera_course_id):
     response = teacher_api_client.get(
         reverse("coursera-api:video-list", kwargs={"course_id": coursera_course_id})
