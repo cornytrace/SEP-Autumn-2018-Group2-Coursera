@@ -97,7 +97,9 @@ class VideoAnalyticsSerializer(VideoSerializer):
     @cached_property
     def clickstream_filter(self):
         def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
-            return ClickstreamEventFilterSet(data, queryset, request=request, prefix=prefix).qs
+            return ClickstreamEventFilterSet(
+                data, queryset, request=request, prefix=prefix
+            ).qs
 
         return partial(
             get_filterset, self.context["request"].GET, request=self.context["request"]
@@ -114,7 +116,7 @@ class VideoAnalyticsSerializer(VideoSerializer):
                     course_id=obj.branch_id,
                     value_json__item_id=obj.item_id,
                     key="start",
-                ),
+                )
             ).aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
                 "watchers_for_video"
             ]
@@ -128,7 +130,7 @@ class VideoAnalyticsSerializer(VideoSerializer):
                     value_json=Cast("value", output_field=JSONField())
                 ).filter(
                     course_id=obj.branch_id, value_json__item_id=obj.item_id, key="end"
-                ),
+                )
             ).aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
                 "watchers_for_video"
             ]
@@ -190,6 +192,16 @@ class VideoAnalyticsSerializer(VideoSerializer):
                         "item_id": item.item_id,
                         "type": item.type.id,
                         "category": item.type.category,
+                        "assessment_id": getattr(
+                            item.assessments.order_by("-version").first(),
+                            "base_id",
+                            None,
+                        ),
+                        "assessment_version": getattr(
+                            item.assessments.order_by("-version").first(),
+                            "version",
+                            None,
+                        ),
                         "passing_fraction": passing_fraction,
                     }
                 return {
@@ -208,7 +220,7 @@ class VideoAnalyticsSerializer(VideoSerializer):
                 self.clickstream_filter(
                     obj.heartbeats.values_list("timecode")
                     .annotate(count=Count("timecode"))
-                    .order_by("timecode"),
+                    .order_by("timecode")
                 )
             )
 
@@ -531,7 +543,7 @@ class QuizAnalyticsSerializer(QuizSerializer):
                     ).qs
                 )
             )
-            .values_list('number_of_attempts')
+            .values_list("number_of_attempts")
             .order_by("number_of_attempts")
             .annotate(num_people=Count("number_of_attempts"))
         )
