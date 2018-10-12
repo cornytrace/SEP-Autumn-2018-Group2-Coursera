@@ -99,6 +99,81 @@ def test_course_analytics_view(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("filter_type", ["from_date", "to_date"])
+def test_course_analytics_date_filter(
+    teacher_api_client, coursera_course_id, filter_type
+):
+    filtered_response = teacher_api_client.get(
+        reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
+        + f"?{filter_type}=2018-09-20"
+    )
+    response = teacher_api_client.get(
+        reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
+    )
+    assert filtered_response.status_code == 200, str(filtered_response.content)
+    simple_keys = [
+        "enrolled_learners",
+        "leaving_learners",
+        "finished_learners",
+        "modules",
+        "quizzes",
+        "assignments",
+        "videos",
+        "cohorts",
+        "average_time",
+    ]
+    list_keys = [
+        "ratings",
+        "finished_learners_over_time",
+        "leaving_learners_per_module",
+        "average_time_per_module",
+    ]
+
+    for key in simple_keys:
+        assert filtered_response.data[key] <= response.data[key], key
+
+    for key in list_keys:
+        assert len(filtered_response.data[key]) <= len(response.data[key]), key
+        for i, (filtered, unfiltered) in enumerate(
+            zip(filtered_response.data[key], response.data[key])
+        ):
+            assert (
+                filtered[1] <= unfiltered[1]
+            ), f"filtered {key} at position {i} was more than unfiltered data"
+
+
+@pytest.mark.django_db
+def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_course_id):
+    filtered_response = teacher_api_client.get(
+        reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
+        + "?from_date="
+        + (date.today() + timedelta(days=10 * 365)).strftime("%Y-%m-%d")
+    )
+    assert filtered_response.status_code == 200, str(filtered_response.content)
+    simple_keys = [
+        "enrolled_learners",
+        "leaving_learners",
+        "finished_learners",
+        "cohorts",
+        # "average_time",
+    ]
+    list_keys = [
+        "ratings",
+        "finished_learners_over_time",
+        # "leaving_learners_per_module",
+        # "average_time_per_module",
+    ]
+
+    for key in simple_keys:
+        assert filtered_response.data[key] == 0, key
+
+    for key in list_keys:
+        assert len(filtered_response.data[key]) == 0 or all(
+            d[1] == 0 for d in filtered_response.data[key]
+        )
+
+
+@pytest.mark.django_db
 def test_course_analytics_no_permissions(teacher_api_client):
     response = teacher_api_client.get(
         reverse("coursera-api:course-detail", kwargs={"pk": "bmHtyVrIEee3CwoIJ_9DVg"})
@@ -185,7 +260,7 @@ def test_video_analytics_date_filter(
             zip(filtered_response.data[key], response.data[key])
         ):
             assert (
-                filtered <= unfiltered
+                filtered[1] <= unfiltered[1]
             ), f"filtered {key} at position {i} was more than unfiltered data"
 
 
@@ -216,7 +291,7 @@ def test_video_analytics_date_filter_in_future(
 
     for key in list_keys:
         assert len(filtered_response.data[key]) == 0 or all(
-            d == 0 for d in filtered_response.data[key]
+            d[1] == 0 for d in filtered_response.data[key]
         )
 
 
@@ -400,7 +475,7 @@ def test_quiz_analytics_date_filter_in_future(
 
     for key in list_keys:
         assert len(filtered_response.data[key]) == 0 or all(
-            d == 0 for d in filtered_response.data[key]
+            d[1] == 0 for d in filtered_response.data[key]
         )
 
 
