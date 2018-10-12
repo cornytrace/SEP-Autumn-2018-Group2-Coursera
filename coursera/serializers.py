@@ -5,6 +5,7 @@ from django.db.models import (
     Avg,
     Count,
     DateField,
+    DecimalField,
     F,
     FloatField,
     Func,
@@ -429,8 +430,11 @@ class QuizAnalyticsSerializer(QuizSerializer):
                 ItemGrade.objects.filter(
                     item__assessments=obj, course=self.context["course_id"]
                 )
-                .values_list("overall")
-                .order_by("overall")
+                .annotate(
+                    grade=Cast("overall", DecimalField(max_digits=3, decimal_places=2))
+                )
+                .values_list("grade")
+                .order_by("grade")
                 .annotate(num_grades=Count("eitdigital_user")),
             ).qs
         )
@@ -511,12 +515,18 @@ class QuizAnalyticsSerializer(QuizSerializer):
 
     def get_last_attempt_average_grade(self, obj):
         return GenericFilterSet(
-            self.context["request"].GET, obj.last_attempts.all()
-        ).qs.aggregate(average_grade=Avg("score"))["average_grade"]
+            self.context["request"].GET,
+            obj.last_attempts.annotate(
+                grade=Cast("score", DecimalField(max_digits=3, decimal_places=2))
+            ),
+        ).qs.aggregate(average_grade=Avg("grade"))["average_grade"]
 
     def get_last_attempt_grade_distribution(self, obj):
         return list(
             GenericFilterSet(
-                self.context["request"].GET, obj.last_attempts.values_list("score")
+                self.context["request"].GET,
+                obj.last_attempts.annotate(
+                    grade=Cast("score", DecimalField(max_digits=3, decimal_places=2))
+                ).values_list("grade"),
             ).qs.annotate(count=Count("eitdigital_user_id"))
         )

@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import OuterRef
+from django.db.models.functions import Cast
 
 from coursera.utils import AvgSubquery, CountSubquery
 
@@ -19,10 +20,14 @@ class AssessmentQuerySet(models.QuerySet):
     def with_average_grade(self):
         return self.annotate(
             average_grade=AvgSubquery(
-                ItemGrade.objects.filter(item__assessments=OuterRef("pk")).values(
-                    "overall"
-                ),
-                db_column="course_item_grade_overall",
+                ItemGrade.objects.filter(item__assessments=OuterRef("pk"))
+                .annotate(
+                    grade=Cast(
+                        "overall", models.DecimalField(max_digits=3, decimal_places=2)
+                    )
+                )
+                .values_list("grade"),
+                db_column="grade",
             )
         )
 
