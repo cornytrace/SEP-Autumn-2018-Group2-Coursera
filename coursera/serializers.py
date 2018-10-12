@@ -467,7 +467,6 @@ class QuizAnalyticsSerializer(QuizSerializer):
     def get_number_of_attempts(self, obj):
         return list(
             self.filter(Attempt.objects.filter(assessment=obj))
-            .values_list("eitdigital_user_id")
             .annotate(
                 number_of_attempts=CountSubquery(
                     GenericFilterSet(
@@ -479,6 +478,7 @@ class QuizAnalyticsSerializer(QuizSerializer):
                     ).qs
                 )
             )
+            .values_list('number_of_attempts')
             .order_by("number_of_attempts")
             .annotate(num_people=Count("number_of_attempts"))
         )
