@@ -381,9 +381,17 @@ class CourseAnalyticsSerializer(CourseSerializer):
             )
 
     def get_average_time(self, obj):
+        """
+        Return the average time that users spend on this course, that is
+        the time between the user's first activity and last activity.
+        """
         return obj.average_time
 
     def get_average_time_per_module(self, obj):
+        """
+        For each module in course `obj`, return the average duration between
+        each learners first activity and last activity in that module.
+        """
         try:
             return obj.average_time_per_module
         except AttributeError:
@@ -465,6 +473,11 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_number_of_attempts(self, obj):
+        """
+        Return the number of users that have used a specific number of attempts
+        on the quiz. Every day on which a user submitted at least one response
+        is counted as an attempt.
+        """
         return list(
             self.filter(Attempt.objects.filter(assessment=obj))
             .annotate(
@@ -541,6 +554,14 @@ class QuizAnalyticsSerializer(QuizSerializer):
         ]
 
     def get_last_attempt_average_grade(self, obj):
+        """
+        Return the average grade of the last attempts for a quiz.
+
+        A last attempt is the last submission for each question at a specific order
+        in the quiz. If the question at a specific order is replaced, and the user
+        submits a response to the new question, the response for the new question
+        is counted.
+        """
         return self.filter(
             obj.last_attempts.annotate(
                 grade=Cast("score", DecimalField(max_digits=3, decimal_places=2))
