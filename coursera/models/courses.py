@@ -123,7 +123,7 @@ class CourseQuerySet(models.QuerySet):
         return self.annotate(
             average_time=Coalesce(
                 AvgSubquery(
-                    filter(CourseProgress.objects.filter(course_id=OuterRef("pk")))
+                    CourseProgress.objects.filter(course_id=OuterRef("pk"))
                     .values("eitdigital_user_id")
                     .annotate(time_spent=Max("timestamp") - Min("timestamp"))
                     .values("time_spent"),

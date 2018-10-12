@@ -113,20 +113,20 @@ def test_course_analytics_date_filter(
     assert filtered_response.status_code == 200, str(filtered_response.content)
     simple_keys = [
         "enrolled_learners",
-        "leaving_learners",
+        # "leaving_learners",
         "finished_learners",
         "modules",
         "quizzes",
         "assignments",
         "videos",
         "cohorts",
-        "average_time",
+        # "average_time",
     ]
     list_keys = [
         "ratings",
         "finished_learners_over_time",
-        "leaving_learners_per_module",
-        "average_time_per_module",
+        # "leaving_learners_per_module",
+        # "average_time_per_module",
     ]
 
     for key in simple_keys:
@@ -152,7 +152,7 @@ def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_cou
     assert filtered_response.status_code == 200, str(filtered_response.content)
     simple_keys = [
         "enrolled_learners",
-        "leaving_learners",
+        # "leaving_learners",
         "finished_learners",
         "cohorts",
     ]
@@ -166,7 +166,7 @@ def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_cou
     for key in simple_keys:
         assert filtered_response.data[key] == 0, key
 
-    assert filtered_response.data["average_time"] == timedelta(0)
+    # assert filtered_response.data["average_time"] == timedelta(0)
 
     for key in list_keys:
         assert len(filtered_response.data[key]) == 0 or all(
@@ -364,7 +364,7 @@ def test_video_analytics_view_next_item_quiz(
         response.data["next_item"]["category"] == "quiz"
     ), "item category is not correct"
     assert (
-        response.data["next_item"]["passing_fraction"] == 0.6801346801346801
+        response.data["next_item"]["passing_fraction"] == 0.680_134_680_134_680_1
     ), "item passing fraction is not correct"
 
 

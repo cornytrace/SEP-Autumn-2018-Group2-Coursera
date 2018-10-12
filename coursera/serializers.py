@@ -295,13 +295,12 @@ class CourseAnalyticsSerializer(CourseSerializer):
             return obj.leaving_learners
         except AttributeError:
             return (
-                self.filter(
-                    CourseMembership.objects.filter(course_id=obj.pk).filter(
-                        role__in=[
-                            CourseMembership.LEARNER,
-                            CourseMembership.PRE_ENROLLED_LEARNER,
-                        ]
-                    )
+                CourseMembership.objects.filter(course_id=obj.pk)
+                .filter(
+                    role__in=[
+                        CourseMembership.LEARNER,
+                        CourseMembership.PRE_ENROLLED_LEARNER,
+                    ]
                 )
                 .values("eitdigital_user_id")
                 .difference(
