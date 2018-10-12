@@ -4,10 +4,10 @@ from coursera.models import ClickstreamEvent
 
 
 class ClickstreamEventFilterSet(django_filters.FilterSet):
-    from_date = django_filters.DateFilter(
+    from_date = django_filters.DateTimeFilter(
         field_name="server_timestamp", lookup_expr="gte"
     )
-    to_date = django_filters.DateFilter(
+    to_date = django_filters.DateTimeFilter(
         field_name="server_timestamp", lookup_expr="lte"
     )
 
@@ -17,5 +17,5 @@ class ClickstreamEventFilterSet(django_filters.FilterSet):
 
 
 class GenericFilterSet(django_filters.FilterSet):
-    from_date = django_filters.DateFilter(field_name="timestamp", lookup_expr="gte")
-    to_date = django_filters.DateFilter(field_name="timestamp", lookup_expr="lte")
+    from_date = django_filters.DateTimeFilter(field_name="timestamp", lookup_expr="gte")
+    to_date = django_filters.DateTimeFilter(field_name="timestamp", lookup_expr="lte")

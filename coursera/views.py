@@ -1,9 +1,13 @@
+from functools import partial
+
 from django.db.models import F, OuterRef, Subquery
 from django.shortcuts import get_object_or_404
+from django.utils.functional import cached_property
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from coursera.filters import GenericFilterSet
 from coursera.models import Assessment, ClickstreamEvent, Course, Item
 from coursera.serializers import (
     CourseAnalyticsSerializer,
@@ -63,11 +67,18 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
 
 
 class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
-    queryset = Assessment.objects.with_average_grade()
+    queryset = Assessment.objects.all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 
     lookup_field = "version"
+
+    @cached_property
+    def generic_filterset(self):
+        def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
+
+        return partial(get_filterset, self.request.GET, request=self.request)
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -83,6 +94,7 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
         queryset = (
             super()
             .get_queryset()
+            .with_average_grade(self.generic_filterset)
             .filter(items__branch__in=self.request.user.courses)
             .filter(items__branch=self.kwargs["course_id"])
             .order_by("base_id", "version")

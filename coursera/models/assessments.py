@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import OuterRef
-from django.db.models.functions import Cast
+from django.db.models.functions import Cast, Coalesce
 
 from coursera.utils import AvgSubquery, CountSubquery
 
@@ -10,25 +10,25 @@ __all__ = [
     "Assessment",
     "ItemAssessment",
     "Response",
-    "AttemptCount",
+    "Attempt",
     "ResponseOption",
     "LastAttempt",
 ]
 
 
 class AssessmentQuerySet(models.QuerySet):
-    def with_average_grade(self):
-        return self.annotate(
-            average_grade=AvgSubquery(
-                ItemGrade.objects.filter(item__assessments=OuterRef("pk"))
-                .annotate(
-                    grade=Cast(
-                        "overall", models.DecimalField(max_digits=3, decimal_places=2)
-                    )
+    def with_average_grade(self, filter):
+        subquery = filter(
+            ItemGrade.objects.filter(item__assessments=OuterRef("pk"))
+            .annotate(
+                grade=Cast(
+                    "overall", models.DecimalField(max_digits=3, decimal_places=2)
                 )
-                .values_list("grade"),
-                db_column="grade",
             )
+            .values_list("grade")
+        )
+        return self.annotate(
+            average_grade=Coalesce(AvgSubquery(subquery, db_column="grade"), 0)
         )
 
 
@@ -127,7 +127,7 @@ class ResponseOption(models.Model):
         db_table = "assessment_response_options_view"
 
 
-class AttemptCount(models.Model):
+class Attempt(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
     assessment = models.ForeignKey(
         "Assessment", related_name="attempts", on_delete=models.DO_NOTHING
@@ -135,7 +135,7 @@ class AttemptCount(models.Model):
     eitdigital_user = models.ForeignKey(
         "EITDigitalUser", related_name="attempts", on_delete=models.DO_NOTHING
     )
-    number_of_attempts = models.IntegerField()
+    timestamp = models.DateField()
 
     class Meta:
         managed = False

@@ -1,28 +1,16 @@
 from datetime import timedelta
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (
-    Avg,
-    Count,
-    DateField,
-    DecimalField,
-    F,
-    FloatField,
-    Func,
-    Max,
-    Min,
-    Q,
-    Subquery,
-    Sum,
-    Window,
-)
+from django.db.models import (Avg, Count, DateField, DecimalField, F,
+                              FloatField, Func, Max, Min, OuterRef, Q,
+                              Subquery, Sum, Window)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.timezone import now
 from rest_framework import serializers
 
 from coursera.filters import ClickstreamEventFilterSet, GenericFilterSet
 from coursera.models import *
-from coursera.utils import NullIf
+from coursera.utils import CountSubquery, NullIf
 
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -440,14 +428,32 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_average_attempts(self, obj):
-        return AttemptCount.objects.filter(assessment=obj).aggregate(
-            average=Avg("number_of_attempts")
-        )["average"]
+        return (
+            GenericFilterSet(
+                self.context["request"].GET, Attempt.objects.filter(assessment=obj)
+            )
+            .qs.values("eitdigital_user_id")
+            .annotate(number_of_attempts=Count("timestamp"))
+            .aggregate(average=Coalesce(Avg("number_of_attempts"), 0))["average"]
+        )
 
     def get_number_of_attempts(self, obj):
         return list(
-            AttemptCount.objects.filter(assessment=obj)
-            .values_list("number_of_attempts")
+            GenericFilterSet(
+                self.context["request"].GET, Attempt.objects.filter(assessment=obj)
+            )
+            .qs.values_list("eitdigital_user_id")
+            .annotate(
+                number_of_attempts=CountSubquery(
+                    GenericFilterSet(
+                        self.context["request"].GET,
+                        Attempt.objects.filter(
+                            assessment_id=OuterRef("assessment_id"),
+                            eitdigital_user_id=OuterRef("eitdigital_user_id"),
+                        ),
+                    ).qs
+                )
+            )
             .order_by("number_of_attempts")
             .annotate(num_people=Count("number_of_attempts"))
         )
@@ -519,7 +525,7 @@ class QuizAnalyticsSerializer(QuizSerializer):
             obj.last_attempts.annotate(
                 grade=Cast("score", DecimalField(max_digits=3, decimal_places=2))
             ),
-        ).qs.aggregate(average_grade=Avg("grade"))["average_grade"]
+        ).qs.aggregate(average_grade=Coalesce(Avg("grade"), 0))["average_grade"]
 
     def get_last_attempt_grade_distribution(self, obj):
         return list(

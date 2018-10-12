@@ -145,6 +145,78 @@ def test_video_analytics_view(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("filter_type", ["from_date", "to_date"])
+def test_video_analytics_date_filter(
+    teacher_api_client, coursera_course_id, coursera_video_id, filter_type
+):
+    filtered_response = teacher_api_client.get(
+        reverse(
+            "coursera-api:video-detail",
+            kwargs={"course_id": coursera_course_id, "item_id": coursera_video_id},
+        )
+        + f"?{filter_type}=2018-09-20"
+    )
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:video-detail",
+            kwargs={"course_id": coursera_course_id, "item_id": coursera_video_id},
+        )
+    )
+    assert filtered_response.status_code == 200, str(filtered_response.content)
+    simple_keys = [
+        "watched_video",
+        "finished_video",
+        "video_comments",
+        "video_likes",
+        "video_dislikes",
+    ]
+    list_keys = ["views_over_runtime"]
+
+    for key in simple_keys:
+        assert filtered_response.data[key] <= response.data[key], key
+
+    for key in list_keys:
+        assert len(filtered_response.data[key]) == len(response.data[key]), key
+        for i, (filtered, unfiltered) in enumerate(
+            zip(filtered_response.data[key], response.data[key])
+        ):
+            assert (
+                filtered <= unfiltered
+            ), f"filtered {key} at position {i} was more than unfiltered data"
+
+
+@pytest.mark.django_db
+def test_video_analytics_date_filter_in_future(
+    teacher_api_client, coursera_course_id, coursera_video_id
+):
+    filtered_response = teacher_api_client.get(
+        reverse(
+            "coursera-api:video-detail",
+            kwargs={"course_id": coursera_course_id, "item_id": coursera_video_id},
+        )
+        + "?from_date="
+        + (date.today() + timedelta(days=10 * 365)).strftime("%Y-%m-%d")
+    )
+    assert filtered_response.status_code == 200, str(filtered_response.content)
+    simple_keys = [
+        "watched_video",
+        "finished_video",
+        "video_comments",
+        "video_likes",
+        "video_dislikes",
+    ]
+    list_keys = ["views_over_runtime"]
+
+    for key in simple_keys:
+        assert filtered_response.data[key] == 0, key
+
+    for key in list_keys:
+        assert len(filtered_response.data[key]) == 0 or all(
+            d == 0 for d in filtered_response.data[key]
+        )
+
+
+@pytest.mark.django_db
 def test_video_analytics_no_permissions(teacher_api_client, coursera_video_id):
     response = teacher_api_client.get(
         reverse(
@@ -245,6 +317,87 @@ def test_quiz_analytics_view(
     ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("filter_type", ["from_date", "to_date"])
+def test_quiz_analytics_date_filter(
+    teacher_api_client,
+    coursera_course_id,
+    coursera_assessment_base_id,
+    coursera_assessment_version,
+    filter_type,
+):
+    filtered_response = teacher_api_client.get(
+        reverse(
+            "coursera-api:quiz-detail",
+            kwargs={
+                "course_id": coursera_course_id,
+                "base_id": coursera_assessment_base_id,
+                "version": coursera_assessment_version,
+            },
+        )
+        + f"?{filter_type}=2018-09-20"
+    )
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:quiz-detail",
+            kwargs={
+                "course_id": coursera_course_id,
+                "base_id": coursera_assessment_base_id,
+                "version": coursera_assessment_version,
+            },
+        )
+    )
+    assert filtered_response.status_code == 200, str(filtered_response.content)
+    simple_keys = ["quiz_comments", "quiz_likes", "quiz_dislikes"]
+
+    for key in simple_keys:
+        assert filtered_response.data[key] <= response.data[key], key
+
+
+@pytest.mark.django_db
+def test_quiz_analytics_date_filter_in_future(
+    teacher_api_client,
+    coursera_course_id,
+    coursera_assessment_base_id,
+    coursera_assessment_version,
+):
+    filtered_response = teacher_api_client.get(
+        reverse(
+            "coursera-api:quiz-detail",
+            kwargs={
+                "course_id": coursera_course_id,
+                "base_id": coursera_assessment_base_id,
+                "version": coursera_assessment_version,
+            },
+        )
+        + "?from_date="
+        + (date.today() + timedelta(days=10 * 365)).strftime("%Y-%m-%d")
+    )
+    assert filtered_response.status_code == 200, str(filtered_response.content)
+    simple_keys = [
+        "average_grade",
+        "average_attempts",
+        "quiz_comments",
+        "quiz_likes",
+        "quiz_dislikes",
+        "last_attempt_average_grade",
+    ]
+    list_keys = [
+        "grade_distribution",
+        "number_of_attempts",
+        "correct_ratio_per_question",
+        "last_attempt_grade_distribution",
+    ]
+
+    for key in simple_keys:
+        assert filtered_response.data[key] == 0, key
+
+    for key in list_keys:
+        assert len(filtered_response.data[key]) == 0 or all(
+            d == 0 for d in filtered_response.data[key]
+        )
 
 
 @pytest.mark.django_db

@@ -25,7 +25,6 @@ class OAuth2TokenMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         # do something only if request contains a Bearer token
-        print(type(request))
         if request.META.get("HTTP_AUTHORIZATION", "").startswith("Bearer"):
             if not hasattr(request, "user") or request.user.is_anonymous:
                 user = authenticate(request=request)
