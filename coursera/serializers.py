@@ -2,9 +2,22 @@ from datetime import timedelta
 from functools import partial
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (Avg, Count, DateField, DecimalField, F,
-                              FloatField, Func, Max, Min, OuterRef, Q,
-                              Subquery, Sum, Window)
+from django.db.models import (
+    Avg,
+    Count,
+    DateField,
+    DecimalField,
+    F,
+    FloatField,
+    Func,
+    Max,
+    Min,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    Window,
+)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.functional import cached_property
 from django.utils.timezone import now

@@ -49,7 +49,7 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
             .with_assignments()
             .with_videos()
             .with_cohorts(self.generic_filterset)
-            .with_average_time(filter)
+            .with_average_time(self.generic_filterset)
         )
 
 

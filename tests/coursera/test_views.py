@@ -155,7 +155,6 @@ def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_cou
         "leaving_learners",
         "finished_learners",
         "cohorts",
-        # "average_time",
     ]
     list_keys = [
         "ratings",
@@ -166,6 +165,8 @@ def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_cou
 
     for key in simple_keys:
         assert filtered_response.data[key] == 0, key
+
+    assert filtered_response.data["average_time"] == timedelta(0)
 
     for key in list_keys:
         assert len(filtered_response.data[key]) == 0 or all(
