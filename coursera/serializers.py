@@ -1,10 +1,12 @@
 from datetime import timedelta
+from functools import partial
 
 from django.contrib.postgres.fields import JSONField
 from django.db.models import (Avg, Count, DateField, DecimalField, F,
                               FloatField, Func, Max, Min, OuterRef, Q,
                               Subquery, Sum, Window)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
+from django.utils.functional import cached_property
 from django.utils.timezone import now
 from rest_framework import serializers
 
@@ -70,12 +72,29 @@ class VideoAnalyticsSerializer(VideoSerializer):
     next_item = serializers.SerializerMethodField()
     views_over_runtime = serializers.SerializerMethodField()
 
+    @cached_property
+    def filter(self):
+        def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
+
+        return partial(
+            get_filterset, self.context["request"].GET, request=self.context["request"]
+        )
+
+    @cached_property
+    def clickstream_filter(self):
+        def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            return ClickstreamEventFilterSet(data, queryset, request=request, prefix=prefix).qs
+
+        return partial(
+            get_filterset, self.context["request"].GET, request=self.context["request"]
+        )
+
     def get_watched_video(self, obj):
         try:
             return obj.watched_video
         except AttributeError:
-            return ClickstreamEventFilterSet(
-                self.context["request"].GET,
+            return self.clickstream_filter(
                 ClickstreamEvent.objects.annotate(
                     value_json=Cast("value", output_field=JSONField())
                 ).filter(
@@ -83,7 +102,7 @@ class VideoAnalyticsSerializer(VideoSerializer):
                     value_json__item_id=obj.item_id,
                     key="start",
                 ),
-            ).qs.aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
+            ).aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
                 "watchers_for_video"
             ]
 
@@ -91,14 +110,13 @@ class VideoAnalyticsSerializer(VideoSerializer):
         try:
             return obj.finished_video
         except AttributeError:
-            return ClickstreamEventFilterSet(
-                self.context["request"].GET,
+            return self.clickstream_filter(
                 ClickstreamEvent.objects.annotate(
                     value_json=Cast("value", output_field=JSONField())
                 ).filter(
                     course_id=obj.branch_id, value_json__item_id=obj.item_id, key="end"
                 ),
-            ).qs.aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
+            ).aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
                 "watchers_for_video"
             ]
 
@@ -106,20 +124,17 @@ class VideoAnalyticsSerializer(VideoSerializer):
         try:
             return obj.video_comments
         except AttributeError:
-            return GenericFilterSet(
-                self.context["request"].GET, DiscussionQuestion.objects.filter(item=obj)
-            ).qs.aggregate(video_comments=Coalesce(Count("pk"), 0))["video_comments"]
+            return self.filter(DiscussionQuestion.objects.filter(item=obj)).aggregate(
+                video_comments=Coalesce(Count("pk"), 0)
+            )["video_comments"]
 
     def get_video_likes(self, obj):
         try:
             return obj.video_likes
         except AttributeError:
-            return GenericFilterSet(
-                self.context["request"].GET,
-                ItemRating.objects.filter(item=obj, system="LIKE_OR_DISLIKE"),
-            ).qs.aggregate(
-                video_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0)
-            )[
+            return self.filter(
+                ItemRating.objects.filter(item=obj, system="LIKE_OR_DISLIKE")
+            ).aggregate(video_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0))[
                 "video_likes"
             ]
 
@@ -127,12 +142,9 @@ class VideoAnalyticsSerializer(VideoSerializer):
         try:
             return obj.video_dislikes
         except AttributeError:
-            return GenericFilterSet(
-                self.context["request"].GET,
-                ItemRating.objects.filter(item=obj, system="LIKE_OR_DISLIKE"),
-            ).qs.aggregate(
-                video_likes=Coalesce(Count("rating", filter=Q(rating=0)), 0)
-            )[
+            return self.filter(
+                ItemRating.objects.filter(item=obj, system="LIKE_OR_DISLIKE")
+            ).aggregate(video_likes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
                 "video_likes"
             ]
 
@@ -153,12 +165,11 @@ class VideoAnalyticsSerializer(VideoSerializer):
             return obj.views_over_runtime
         except AttributeError:
             return list(
-                ClickstreamEventFilterSet(
-                    self.context["request"].GET,
+                self.clickstream_filter(
                     obj.heartbeats.values_list("timecode")
                     .annotate(count=Count("timecode"))
                     .order_by("timecode"),
-                ).qs
+                )
             )
 
 
@@ -194,6 +205,15 @@ class CourseAnalyticsSerializer(CourseSerializer):
     average_time = serializers.SerializerMethodField()
     average_time_per_module = serializers.SerializerMethodField()
 
+    @cached_property
+    def filter(self):
+        def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
+
+        return partial(
+            get_filterset, self.context["request"].GET, request=self.context["request"]
+        )
+
     def _filter_current_branch(self, course_id):
         """
         Return a filtered queryset with just the current branch for `course_id`.
@@ -223,12 +243,13 @@ class CourseAnalyticsSerializer(CourseSerializer):
             return obj.leaving_learners
         except AttributeError:
             return (
-                CourseMembership.objects.filter(course_id=obj.pk)
-                .filter(
-                    role__in=[
-                        CourseMembership.LEARNER,
-                        CourseMembership.PRE_ENROLLED_LEARNER,
-                    ]
+                self.filter(
+                    CourseMembership.objects.filter(course_id=obj.pk).filter(
+                        role__in=[
+                            CourseMembership.LEARNER,
+                            CourseMembership.PRE_ENROLLED_LEARNER,
+                        ]
+                    )
                 )
                 .values("eitdigital_user_id")
                 .difference(
@@ -292,7 +313,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
             ratings = obj.ratings
         except AttributeError:
             ratings = list(
-                GenericFilterSet(self.context['request'].GET, CourseRating.objects.filter(course_id=obj.pk)).qs
+                self.filter(CourseRating.objects.filter(course_id=obj.pk))
                 .filter(
                     feedback_system__in=[
                         CourseRating.NPS_FIRST_WEEK,
@@ -317,10 +338,8 @@ class CourseAnalyticsSerializer(CourseSerializer):
             return obj.finished_learners_over_time
         except AttributeError:
             return list(
-                GenericFilterSet(
-                    self.context["request"].GET, Grade.objects.filter(course_id=obj.pk)
-                )
-                .qs.annotate(month=TruncMonth("timestamp", output_field=DateField()))
+                self.filter(Grade.objects.filter(course_id=obj.pk))
+                .annotate(month=TruncMonth("timestamp", output_field=DateField()))
                 .annotate(
                     num_finished=Window(
                         Count(
@@ -413,38 +432,42 @@ class QuizAnalyticsSerializer(QuizSerializer):
     last_attempt_average_grade = serializers.SerializerMethodField()
     last_attempt_grade_distribution = serializers.SerializerMethodField()
 
+    @cached_property
+    def filter(self):
+        def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
+
+        return partial(
+            get_filterset, self.context["request"].GET, request=self.context["request"]
+        )
+
     def get_grade_distribution(self, obj):
         return list(
-            GenericFilterSet(
-                self.context["request"].GET,
+            self.filter(
                 ItemGrade.objects.filter(
                     item__assessments=obj, course=self.context["course_id"]
                 )
-                .annotate(
-                    grade=Cast("overall", DecimalField(max_digits=3, decimal_places=2))
-                )
-                .values_list("grade")
-                .order_by("grade")
-                .annotate(num_grades=Count("eitdigital_user")),
-            ).qs
+            )
+            .annotate(
+                grade=Cast("overall", DecimalField(max_digits=3, decimal_places=2))
+            )
+            .values_list("grade")
+            .order_by("grade")
+            .annotate(num_grades=Count("eitdigital_user"))
         )
 
     def get_average_attempts(self, obj):
         return (
-            GenericFilterSet(
-                self.context["request"].GET, Attempt.objects.filter(assessment=obj)
-            )
-            .qs.values("eitdigital_user_id")
+            self.filter(Attempt.objects.filter(assessment=obj))
+            .values("eitdigital_user_id")
             .annotate(number_of_attempts=Count("timestamp"))
             .aggregate(average=Coalesce(Avg("number_of_attempts"), 0))["average"]
         )
 
     def get_number_of_attempts(self, obj):
         return list(
-            GenericFilterSet(
-                self.context["request"].GET, Attempt.objects.filter(assessment=obj)
-            )
-            .qs.values_list("eitdigital_user_id")
+            self.filter(Attempt.objects.filter(assessment=obj))
+            .values_list("eitdigital_user_id")
             .annotate(
                 number_of_attempts=CountSubquery(
                     GenericFilterSet(
@@ -462,12 +485,11 @@ class QuizAnalyticsSerializer(QuizSerializer):
 
     def get_correct_ratio_per_question(self, obj):
         return list(
-            GenericFilterSet(
-                self.context["request"].GET,
+            self.filter(
                 Response.objects.filter(assessment=obj)
                 .values_list("question_id")
-                .order_by("question_id"),
-            ).qs.annotate(
+                .order_by("question_id")
+            ).annotate(
                 ratio=Cast(
                     Count(
                         "response_options__option_id",
@@ -490,51 +512,46 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_quiz_comments(self, obj):
-        return GenericFilterSet(
-            self.context["request"].GET,
+        return self.filter(
             DiscussionQuestion.objects.filter(
                 item__assessments=obj, course_id=self.context["course_id"]
-            ),
-        ).qs.aggregate(quiz_comments=Coalesce(Count("pk"), 0))["quiz_comments"]
+            )
+        ).aggregate(quiz_comments=Coalesce(Count("pk"), 0))["quiz_comments"]
 
     def get_quiz_likes(self, obj):
-        return GenericFilterSet(
-            self.context["request"].GET,
+        return self.filter(
             ItemRating.objects.filter(
                 item__assessments=obj,
                 course_id=self.context["course_id"],
                 system="LIKE_OR_DISLIKE",
-            ),
-        ).qs.aggregate(quiz_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0))[
+            )
+        ).aggregate(quiz_likes=Coalesce(Count("rating", filter=Q(rating=1)), 0))[
             "quiz_likes"
         ]
 
     def get_quiz_dislikes(self, obj):
-        return GenericFilterSet(
-            self.context["request"].GET,
+        return self.filter(
             ItemRating.objects.filter(
                 item__assessments=obj,
                 course_id=self.context["course_id"],
                 system="LIKE_OR_DISLIKE",
-            ),
-        ).qs.aggregate(quiz_dislikes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
+            )
+        ).aggregate(quiz_dislikes=Coalesce(Count("rating", filter=Q(rating=0)), 0))[
             "quiz_dislikes"
         ]
 
     def get_last_attempt_average_grade(self, obj):
-        return GenericFilterSet(
-            self.context["request"].GET,
+        return self.filter(
             obj.last_attempts.annotate(
                 grade=Cast("score", DecimalField(max_digits=3, decimal_places=2))
-            ),
-        ).qs.aggregate(average_grade=Coalesce(Avg("grade"), 0))["average_grade"]
+            )
+        ).aggregate(average_grade=Coalesce(Avg("grade"), 0))["average_grade"]
 
     def get_last_attempt_grade_distribution(self, obj):
         return list(
-            GenericFilterSet(
-                self.context["request"].GET,
+            self.filter(
                 obj.last_attempts.annotate(
                     grade=Cast("score", DecimalField(max_digits=3, decimal_places=2))
-                ).values_list("grade"),
-            ).qs.annotate(count=Count("eitdigital_user_id"))
+                ).values_list("grade")
+            ).annotate(count=Count("eitdigital_user_id"))
         )

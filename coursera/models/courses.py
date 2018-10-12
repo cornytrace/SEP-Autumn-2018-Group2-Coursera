@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 from django.db import models
-from django.db.models import Avg, Count, F, Max, Min, OuterRef, Q, Subquery, Window
+from django.db.models import (Avg, Count, F, Max, Min, OuterRef, Q, Subquery,
+                              Window)
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils.timezone import now
 
@@ -119,7 +120,7 @@ class CourseQuerySet(models.QuerySet):
             )
         )
 
-    def with_average_time(self):
+    def with_average_time(self, filter):
         return self.annotate(
             average_time=AvgSubquery(
                 CourseProgress.objects.filter(course_id=OuterRef("pk"))
