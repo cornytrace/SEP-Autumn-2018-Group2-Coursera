@@ -145,5 +145,4 @@ class Country2To3(models.Model):
     three_let = models.CharField(max_length=3)
 
     class Meta:
-        managed = False
         db_table = "country2to3"
