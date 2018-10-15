@@ -1,6 +1,6 @@
 from django.db import models
 
-__all__ = ["Module", "Lesson", "Item", "ItemType"]
+__all__ = ["Module", "Lesson", "Item", "ItemType", "Country2To3"]
 
 
 class Module(models.Model):
@@ -137,3 +137,13 @@ class ItemType(models.Model):
     class Meta:
         managed = False
         db_table = "course_item_types"
+
+
+class Country2To3(models.Model):
+    country = models.CharField(max_length=100)
+    two_let = models.CharField(max_length=2, primary_key=True)
+    three_let = models.CharField(max_length=3)
+
+    class Meta:
+        managed = False
+        db_table = "country2to3"

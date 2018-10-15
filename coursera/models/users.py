@@ -1,12 +1,16 @@
 from django.db import models
 
+from .course_structure import Country2To3
+
 __all__ = ["EITDigitalUser", "CourseMembership"]
 
 
 class EITDigitalUser(models.Model):
     eitdigital_user_id = models.CharField(primary_key=True, max_length=50)
     user_join_ts = models.DateTimeField(blank=True, null=True)
-    country_cd = models.CharField(max_length=2, blank=True, null=True)
+    country_cd = models.ForeignKey(
+        Country2To3, on_delete=models.PROTECT, db_column="country_cd"
+    )
     region_cd = models.CharField(max_length=3, blank=True, null=True)
     profile_language_cd = models.CharField(max_length=8, blank=True, null=True)
     browser_language_cd = models.CharField(max_length=8, blank=True, null=True)

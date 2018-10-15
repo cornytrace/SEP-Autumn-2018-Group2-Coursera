@@ -13,7 +13,7 @@ from coursera.serializers import CourseAnalyticsSerializer
 def test_course_analytics_view(
     teacher_api_client, coursera_course_id, django_assert_max_num_queries
 ):
-    with django_assert_max_num_queries(8) as captured:
+    with django_assert_max_num_queries(9) as captured:
         response = teacher_api_client.get(
             reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
         )
@@ -92,6 +92,7 @@ def test_course_analytics_view(
             ("wIGCQ", timedelta(days=20, seconds=76575, microseconds=212_452)),
             ("DPfkU", timedelta(days=13, seconds=19833, microseconds=407_895)),
         ],
+        "geo_data": [("US", 1337), ("NL", 80085)],
     }
     assert response.data.keys() == data.keys()
     for key, value in data.items():
