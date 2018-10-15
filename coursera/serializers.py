@@ -474,7 +474,8 @@ class CourseAnalyticsSerializer(CourseSerializer):
                     .values("eitdigital_user_id")
                 )
                 .annotate(three_let=F("country_cd__three_let"))
-                .values_list("three_let")
+                .annotate(country_name=F("country_cd__country"))
+                .values_list("three_let", "country_name")
                 .annotate(country_count=Count("eitdigital_user_id"))
             )
 
