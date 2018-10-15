@@ -7,7 +7,7 @@ from django.utils.timezone import now
 
 from coursera.utils import AvgSubquery, CountSubquery
 
-from .activities import CourseProgress
+from .activities import CourseDuration, CourseProgress
 from .assessments import ItemAssessment
 from .course_structure import Item, ItemType, Module
 from .feedback import CourseRating
@@ -123,11 +123,10 @@ class CourseQuerySet(models.QuerySet):
         return self.annotate(
             average_time=Coalesce(
                 AvgSubquery(
-                    CourseProgress.objects.filter(course_id=OuterRef("pk"))
-                    .values("eitdigital_user_id")
-                    .annotate(time_spent=Max("timestamp") - Min("timestamp"))
-                    .values("time_spent"),
-                    db_column="time_spent",
+                    CourseDuration.objects.filter(course_id=OuterRef("pk")).values(
+                        "duration"
+                    ),
+                    db_column="duration",
                     output_field=models.DurationField(),
                 ),
                 timedelta(0),

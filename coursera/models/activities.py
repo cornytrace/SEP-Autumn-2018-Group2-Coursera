@@ -1,6 +1,7 @@
 from django.db import models
 
 __all__ = [
+    "CourseDuration",
     "CourseProgress",
     "LastActivity",
     "LastActivityPerModule",
@@ -42,6 +43,31 @@ class CourseProgress(models.Model):
     class Meta:
         managed = False
         db_table = "course_progress_view"
+
+
+class CourseDuration(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    course = models.ForeignKey(
+        "Course",
+        related_name="course_duration",
+        on_delete=models.DO_NOTHING,
+        db_column="course_id",
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser",
+        related_name="course_duration",
+        on_delete=models.DO_NOTHING,
+        db_column="eitdigital_user_id",
+    )
+    timestamp = models.DateTimeField(db_column="course_progress_start_ts")
+    duration = models.DurationField()
+
+    class Meta:
+        managed = False
+        db_table = "course_duration_view"
 
 
 class LastActivity(models.Model):
