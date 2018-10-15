@@ -2,22 +2,9 @@ from datetime import timedelta
 from functools import partial
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (
-    Avg,
-    Count,
-    DateField,
-    DecimalField,
-    F,
-    FloatField,
-    Func,
-    Max,
-    Min,
-    OuterRef,
-    Q,
-    Subquery,
-    Sum,
-    Window,
-)
+from django.db.models import (Avg, Count, DateField, DecimalField, F,
+                              FloatField, Func, Max, Min, OuterRef, Q,
+                              Subquery, Sum, Window)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.functional import cached_property
 from django.utils.timezone import now
@@ -241,6 +228,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
             "leaving_learners_per_module",
             "average_time",
             "average_time_per_module",
+            "geo_data",
         ]
 
     enrolled_learners = serializers.SerializerMethodField()
@@ -256,6 +244,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
     leaving_learners_per_module = serializers.SerializerMethodField()
     average_time = serializers.SerializerMethodField()
     average_time_per_module = serializers.SerializerMethodField()
+    geo_data = serializers.SerializerMethodField()
 
     @cached_property
     def filter(self):
@@ -462,6 +451,31 @@ class CourseAnalyticsSerializer(CourseSerializer):
                     )
                 )
                 .order_by("order")
+            )
+
+    def get_geo_data(self, obj):
+        """
+        Return the count of countries of users of the course.
+        """
+        try:
+            return obj.geo_data
+        except AttributeError:
+            return list(
+                EITDigitalUser.objects.filter(
+                    eitdigital_user_id__in=CourseMembership.objects.filter(
+                        course_id=obj.pk
+                    )
+                    .filter(
+                        role__in=[
+                            CourseMembership.LEARNER,
+                            CourseMembership.PRE_ENROLLED_LEARNER,
+                        ]
+                    )
+                    .values("eitdigital_user_id")
+                )
+                .annotate(three_let=F("country_cd__three_let"))
+                .values_list("three_let")
+                .annotate(country_count=Count("eitdigital_user_id"))
             )
 
 
