@@ -37,20 +37,20 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .filter(id__in=self.request.user.courses)
-            .with_enrolled_learners(self.generic_filterset)
-            # .with_leaving_learners()
-            .with_finished_learners(self.generic_filterset)
-            .with_modules()
-            .with_quizzes()
-            .with_assignments()
-            .with_videos()
-            .with_cohorts(self.generic_filterset)
-            .with_average_time(self.generic_filterset)
-        )
+        queryset = super().get_queryset().filter(id__in=self.request.user.courses)
+        if self.action == "retrieve":
+            queryset = (
+                queryset.with_enrolled_learners(self.generic_filterset)
+                # .with_leaving_learners()
+                .with_finished_learners(self.generic_filterset)
+                .with_modules()
+                .with_quizzes()
+                .with_assignments()
+                .with_videos()
+                .with_cohorts(self.generic_filterset)
+                .with_average_time(self.generic_filterset)
+            )
+        return queryset
 
 
 class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
@@ -103,12 +103,14 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
         queryset = (
             super()
             .get_queryset()
-            .with_average_grade(self.generic_filterset)
             .filter(items__branch__in=self.request.user.courses)
             .filter(items__branch=self.kwargs["course_id"])
             .order_by("base_id", "version")
             .annotate(name=F("items__name"))
         )
+        if self.action == "retrieve":
+            queryset = queryset.with_average_grade(self.generic_filterset)
+
         if "base_id" in self.kwargs:
             queryset = queryset.filter(base_id=self.kwargs["base_id"])
         else:
