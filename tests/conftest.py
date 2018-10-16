@@ -31,6 +31,11 @@ def coursera_assessment_version():
 
 
 @pytest.fixture
+def coursera_assignment_id():
+    return "hLatC"
+
+
+@pytest.fixture
 def coursera_assessment_id(coursera_assessment_base_id, coursera_assessment_version):
     return f"{coursera_assessment_base_id}@{coursera_assessment_version}"
 

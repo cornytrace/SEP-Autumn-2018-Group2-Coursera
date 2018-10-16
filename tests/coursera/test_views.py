@@ -571,3 +571,92 @@ def test_quiz_list_view(teacher_api_client, coursera_course_id):
     base_id_counter = Counter([quiz["base_id"] for quiz in response.data])
     for base_id, count in base_id_counter.items():
         assert count == 1, f"Encountered {key} more than once"
+
+
+@pytest.mark.django_db
+def test_assignment_analytics_view(
+    teacher_api_client, coursera_course_id, coursera_assignment_id
+):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:assignment-detail",
+            kwargs={"course_id": coursera_course_id, "item_id": coursera_assignment_id},
+        )
+    )
+    keys = ["id", "branch", "item_id", "lesson", "order", "type", "name", "optional", "submissions", "submission_ratio", "average_grade"]
+    assert response.status_code == 200, str(response.content)
+    assert list(response.data.keys()) == keys
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("filter_type", ["from_date", "to_date"])
+def test_assignment_analytics_date_filter(
+    teacher_api_client, coursera_course_id, coursera_assignment_id, filter_type
+):
+    filtered_response = teacher_api_client.get(
+        reverse(
+            "coursera-api:assignment-detail",
+            kwargs={"course_id": coursera_course_id, "item_id": coursera_assignment_id},
+        )
+        + f"?{filter_type}=2018-09-20"
+    )
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:assignment-detail",
+            kwargs={"course_id": coursera_course_id, "item_id": coursera_assignment_id},
+        )
+    )
+    assert filtered_response.status_code == 200, str(filtered_response.content)
+    
+    assert filtered_response.data["submissions"] <= response.data["submissions"]
+
+
+@pytest.mark.django_db
+def test_assignment_analytics_date_filter_in_future(
+    teacher_api_client, coursera_course_id, coursera_assignment_id
+):
+    filtered_response = teacher_api_client.get(
+        reverse(
+            "coursera-api:assignment-detail",
+            kwargs={"course_id": coursera_course_id, "item_id": coursera_assignment_id},
+        )
+        + "?from_date="
+        + (date.today() + timedelta(days=10 * 365)).strftime("%Y-%m-%d")
+    )
+    assert filtered_response.status_code == 200, str(filtered_response.content)
+    simple_keys = [
+        "submissions",
+        "submission_ratio",
+        "average_grade",
+    ]
+
+    for key in simple_keys:
+        assert filtered_response.data[key] == 0, key
+
+
+@pytest.mark.django_db
+def test_assignment_analytics_no_permissions(teacher_api_client, coursera_assignment_id):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:assignment-detail",
+            kwargs={
+                "course_id": "bmHtyVrIEee3CwoIJ_9DVg",
+                "item_id": coursera_assignment_id,
+            },
+        )
+    )
+    # TODO: this should raise a 403
+    assert (response.status_code == 404) or (
+        (response.status_code == 200) and (response.data == "[]")
+    ), str(response.content)
+
+@pytest.mark.django_db
+def test_assignment_list_view(teacher_api_client, coursera_course_id):
+    response = teacher_api_client.get(
+        reverse("coursera-api:assignment-list", kwargs={"course_id": coursera_course_id})
+    )
+    keys = ["id", "branch", "item_id", "lesson", "order", "type", "name", "optional"]
+    assert response.status_code == 200, str(response.content)
+    assert len(response.data) > 0, "no assignments returned"
+    for item in response.data:
+        assert list(item.keys()) == keys

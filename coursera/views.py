@@ -8,14 +8,15 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from coursera.filters import GenericFilterSet
-from coursera.models import Assessment, ClickstreamEvent, Course, Item
+from coursera.models import Assessment, ClickstreamEvent, Course, Item, ItemType
 from coursera.serializers import (
+    AssignmentAnalyticsSerializer,
     CourseAnalyticsSerializer,
     CourseSerializer,
+    ItemSerializer,
     QuizAnalyticsSerializer,
     QuizSerializer,
     VideoAnalyticsSerializer,
-    VideoSerializer,
 )
 
 
@@ -54,8 +55,8 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
 
 
 class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
-    queryset = Item.objects.all()
-    serializer_class = VideoSerializer
+    queryset = Item.objects.filter(type__description=ItemType.LECTURE)
+    serializer_class = ItemSerializer
     permission_classes = [IsAuthenticated]
 
     lookup_field = "item_id"
@@ -71,7 +72,7 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
             super()
             .get_queryset()
             .filter(branch__in=self.request.user.courses)
-            .filter(branch=self.kwargs["course_id"], type=1)
+            .filter(branch=self.kwargs["course_id"])
         )
 
 
@@ -120,5 +121,41 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
                     .values("version")
                     .order_by("-version")[:1]
                 )
+            )
+        return queryset
+
+
+class AssignmentAnalyticsViewSet(ReadOnlyModelViewSet):
+    queryset = Item.peer_assignment_objects.all()
+    serializer_class = ItemSerializer
+    permission_classes = [IsAuthenticated]
+
+    lookup_field = "item_id"
+    lookup_url_kwarg = "item_id"
+
+    @cached_property
+    def generic_filterset(self):
+        def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
+
+        return partial(get_filterset, self.request.GET, request=self.request)
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return AssignmentAnalyticsSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        queryset = (
+            super()
+            .get_queryset()
+            .filter(branch__in=self.request.user.courses)
+            .filter(branch=self.kwargs["course_id"])
+        )
+        if self.action == "retrieve":
+            queryset = (
+                queryset.with_submissions(self.generic_filterset)
+                .with_submission_ratio(self.generic_filterset)
+                .with_average_grade(self.generic_filterset)
             )
         return queryset

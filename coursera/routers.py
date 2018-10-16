@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from coursera.views import (
+    AssignmentAnalyticsViewSet,
     CourseAnalyticsViewSet,
     QuizAnalyticsViewSet,
     VideoAnalyticsViewSet,
@@ -13,6 +14,11 @@ router = DefaultRouter()
 router.register("course-analytics", CourseAnalyticsViewSet)
 router.register(
     "video-analytics/(?P<course_id>[-\w]+)", VideoAnalyticsViewSet, base_name="video"
+)
+router.register(
+    "assignment-analytics/(?P<course_id>[-\w]+)",
+    AssignmentAnalyticsViewSet,
+    base_name="assignment",
 )
 urlpatterns = router.urls + [
     path(

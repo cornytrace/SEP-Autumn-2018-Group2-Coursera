@@ -15,7 +15,7 @@ from coursera.models import *
 from coursera.utils import CountSubquery, NullIf
 
 
-class VideoSerializer(serializers.ModelSerializer):
+class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = [
@@ -52,9 +52,9 @@ class QuizSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
 
 
-class VideoAnalyticsSerializer(VideoSerializer):
-    class Meta(VideoSerializer.Meta):
-        fields = VideoSerializer.Meta.fields + [
+class VideoAnalyticsSerializer(ItemSerializer):
+    class Meta(ItemSerializer.Meta):
+        fields = ItemSerializer.Meta.fields + [
             "watched_video",
             "finished_video",
             "video_comments",
@@ -631,3 +631,24 @@ class QuizAnalyticsSerializer(QuizSerializer):
                 ).values_list("grade")
             ).annotate(count=Count("eitdigital_user_id"))
         )
+
+class AssignmentAnalyticsSerializer(ItemSerializer):
+    class Meta(ItemSerializer.Meta):
+        fields = ItemSerializer.Meta.fields + [
+            "submissions",
+            "submission_ratio",
+            "average_grade",
+        ]
+
+    submissions = serializers.SerializerMethodField()
+    submission_ratio = serializers.SerializerMethodField()
+    average_grade = serializers.SerializerMethodField()
+
+    def get_submissions(self, obj):
+        return obj.submissions
+
+    def get_submission_ratio(self, obj):
+        return obj.submission_ratio
+
+    def get_average_grade(self, obj):
+        return obj.average_grade

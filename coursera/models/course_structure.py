@@ -1,4 +1,12 @@
 from django.db import models
+from django.db.models import OuterRef
+from django.db.models.functions import Cast, Coalesce
+
+from coursera.utils import AvgSubquery, CountSubquery, NullIf
+
+from .activities import CourseProgress
+from .assignments import PeerAssignment, PeerSubmission
+from .grades import ItemGrade
 
 __all__ = ["Module", "Lesson", "Item", "ItemType", "Country2To3"]
 
@@ -65,6 +73,77 @@ class Lesson(models.Model):
         unique_together = ("branch", "lesson_id")
 
 
+class PeerAssignmentQuerySet(models.QuerySet):
+    def with_submissions(self, filter):
+        return self.annotate(
+            submissions=CountSubquery(
+                filter(
+                    PeerSubmission.objects.filter(peer_assignment__items=OuterRef("pk"))
+                )
+            )
+        )
+
+    def with_submission_ratio(self, filter):
+        return self.annotate(
+            submission_ratio=Coalesce(
+                Cast(
+                    CountSubquery(
+                        filter(
+                            PeerSubmission.objects.filter(
+                                peer_assignment__items=OuterRef("pk")
+                            )
+                            .values_list("eitdigital_user_id")
+                            .distinct()
+                        )
+                    ),
+                    models.FloatField(),
+                )
+                / NullIf(
+                    CountSubquery(
+                        filter(
+                            CourseProgress.objects.filter(item_id=OuterRef("pk"))
+                            .values_list("eitdigital_user_id")
+                            .distinct()
+                        )
+                    ),
+                    0,
+                    output_field=models.FloatField(),
+                ),
+                0,
+            )
+        )
+
+    def with_average_grade(self, filter):
+        subquery = filter(
+            ItemGrade.objects.filter(item=OuterRef("pk"))
+            .annotate(
+                grade=Cast(
+                    "overall", models.DecimalField(max_digits=3, decimal_places=2)
+                )
+            )
+            .values_list("grade")
+        )
+        return self.annotate(
+            average_grade=Coalesce(AvgSubquery(subquery, db_column="grade"), 0)
+        )
+
+
+class PeerAssignmentManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                type__description__in=[
+                    ItemType.PEER,
+                    ItemType.PHASED_PEER,
+                    ItemType.GRADED_PEER,
+                    ItemType.CLOSED_PEER,
+                ]
+            )
+        )
+
+
 class Item(models.Model):
     id = models.CharField(primary_key=True, max_length=50, db_column="item_id")
     branch = models.ForeignKey(
@@ -111,6 +190,11 @@ class Item(models.Model):
         blank=True, db_column="course_branch_atom_is_frozen"
     )
 
+    objects = models.Manager()
+    peer_assignment_objects = PeerAssignmentManager.from_queryset(
+        PeerAssignmentQuerySet
+    )()
+
     class Meta:
         managed = False
         db_table = "course_branch_items_view"
@@ -119,6 +203,10 @@ class Item(models.Model):
 
 class ItemType(models.Model):
     LECTURE = "lecture"
+    PEER = "peer"
+    PHASED_PEER = "phased peer"
+    GRADED_PEER = "graded peer"
+    CLOSED_PEER = "closed peer"
 
     id = models.IntegerField(db_column="course_item_type_id", primary_key=True)
     description = models.CharField(
