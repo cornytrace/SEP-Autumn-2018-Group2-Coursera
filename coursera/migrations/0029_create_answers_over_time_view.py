@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [("coursera", "0026_create_course_progress_index")]
+    dependencies = [("coursera", "0028_country2to3")]
 
     operations = [
         migrations.RunSQL(
