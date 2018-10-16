@@ -104,7 +104,7 @@ class VideoAnalyticsSerializer(VideoSerializer):
                     value_json__item_id=obj.item_id,
                     key="start",
                 )
-            ).aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
+            ).aggregate(watchers_for_video=Coalesce(Count("eitdigital_user_id", distinct=True), 0))[
                 "watchers_for_video"
             ]
 
@@ -118,7 +118,7 @@ class VideoAnalyticsSerializer(VideoSerializer):
                 ).filter(
                     course_id=obj.branch_id, value_json__item_id=obj.item_id, key="end"
                 )
-            ).aggregate(watchers_for_video=Coalesce(Count("pk"), 0))[
+            ).aggregate(watchers_for_video=Coalesce(Count("eitdigital_user_id", distinct=True), 0))[
                 "watchers_for_video"
             ]
 
