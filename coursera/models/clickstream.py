@@ -4,7 +4,8 @@ __all__ = ["ClickstreamEvent", "Heartbeat"]
 
 
 class ClickstreamEvent(models.Model):
-    id = models.CharField(max_length=100, primary_key=True, db_column="hashed_user_id")
+    id = models.CharField(max_length=50, primary_key=True)
+    eitdigital_user_id = models.CharField(max_length=100, db_column="hashed_user_id")
     hashed_session_cookie_id = models.CharField(max_length=100, blank=True, null=True)
     server_timestamp = models.DateTimeField(blank=True, null=True)
     hashed_ip = models.CharField(max_length=100, blank=True, null=True)
@@ -23,7 +24,7 @@ class ClickstreamEvent(models.Model):
 
     class Meta:
         managed = False
-        db_table = "clickstream_events"
+        db_table = "clickstream_events_view"
 
 
 class Heartbeat(models.Model):

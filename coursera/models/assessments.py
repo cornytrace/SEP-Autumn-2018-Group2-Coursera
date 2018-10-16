@@ -8,6 +8,7 @@ from .grades import ItemGrade
 
 __all__ = [
     "Assessment",
+    "AnswerCount",
     "ItemAssessment",
     "Response",
     "Attempt",
@@ -156,3 +157,18 @@ class LastAttempt(models.Model):
     class Meta:
         managed = False
         db_table = "assessment_last_attempt_view"
+
+
+class AnswerCount(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    assessment = models.ForeignKey(
+        "Assessment", related_name="answer_count", on_delete=models.DO_NOTHING
+    )
+    question_id = models.CharField(db_column="assessment_question_id", max_length=50)
+    timestamp = models.DateField(db_column="assessment_action_ts")
+    count_correct = models.IntegerField()
+    count_selected = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "assessment_answers_over_time_view"

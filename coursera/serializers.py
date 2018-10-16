@@ -563,30 +563,19 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_correct_ratio_per_question(self, obj):
+        queryset = self.filter(obj.answer_count.values_list("question_id").order_by('question_id'))
+        if "from_date" in self.context["request"].GET:
+            return list(
+                queryset.annotate(
+                    ratio=Cast(
+                        Max("count_correct") - Min("count_correct"), FloatField()
+                    )
+                    / NullIf(Max("count_selected") - Min("count_selected"), 0, output_field=FloatField())
+                )
+            )
         return list(
-            self.filter(
-                Response.objects.filter(assessment=obj)
-                .values_list("question_id")
-                .order_by("question_id")
-            ).annotate(
-                ratio=Cast(
-                    Count(
-                        "response_options__option_id",
-                        filter=Q(
-                            response_options__correct=True,
-                            response_options__selected=True,
-                        ),
-                    ),
-                    FloatField(),
-                )
-                / NullIf(
-                    Count(
-                        "response_options__option_id",
-                        filter=Q(response_options__selected=True),
-                    ),
-                    0,
-                    output_field=FloatField(),
-                )
+            queryset.annotate(
+                ratio=Cast(Max("count_correct"), FloatField()) / NullIf(Max("count_selected"), 0, output_field=FloatField())
             )
         )
 
