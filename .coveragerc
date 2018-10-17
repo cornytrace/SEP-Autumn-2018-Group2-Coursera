@@ -6,6 +6,7 @@ omit =
     coursera_dashboard/wsgi.py
     tests/*
     */migrations/*
+    */management/commands/*.py
     collectpytest.py
 
 [report]
