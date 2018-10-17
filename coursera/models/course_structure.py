@@ -224,7 +224,7 @@ class ItemType(models.Model):
 
     class Meta:
         managed = False
-        db_table = "course_item_types"
+        db_table = "course_item_types_view"
 
 
 class Country2To3(models.Model):

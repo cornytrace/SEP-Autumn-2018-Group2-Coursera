@@ -136,7 +136,7 @@ class LastActivityPerModule(models.Model):
 
     class Meta:
         managed = False
-        db_table = "last_activity_per_module"
+        db_table = "last_activity_per_module_view"
 
 
 class ModuleLastActivity(models.Model):

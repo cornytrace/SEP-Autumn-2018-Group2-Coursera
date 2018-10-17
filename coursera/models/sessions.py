@@ -37,4 +37,4 @@ class OnDemandSession(models.Model):
 
     class Meta:
         managed = False
-        db_table = "on_demand_sessions"
+        db_table = "on_demand_sessions_view"

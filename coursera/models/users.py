@@ -25,7 +25,7 @@ class EITDigitalUser(models.Model):
 
     class Meta:
         managed = False
-        db_table = "users"
+        db_table = "users_view"
 
 
 class CourseMembership(models.Model):

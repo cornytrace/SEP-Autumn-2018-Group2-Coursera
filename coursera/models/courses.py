@@ -212,7 +212,7 @@ class Course(models.Model):
 
     class Meta:
         managed = False
-        db_table = "courses"
+        db_table = "courses_view"
 
 
 class Branch(models.Model):
@@ -237,4 +237,4 @@ class Branch(models.Model):
 
     class Meta:
         managed = False
-        db_table = "course_branches"
+        db_table = "course_branches_view"

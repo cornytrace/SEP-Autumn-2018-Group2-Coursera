@@ -46,4 +46,4 @@ class Heartbeat(models.Model):
 
     class Meta:
         managed = False
-        db_table = "heartbeat_events"
+        db_table = "heartbeat_events_view"

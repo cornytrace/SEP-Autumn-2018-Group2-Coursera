@@ -260,7 +260,7 @@ class Migration(migrations.Migration):
             ],
             reverse_sql=[
                 """
-                    DROP TABLE country2to3;
+                    DELETE FROM country2to3;
                 """
             ],
         )
