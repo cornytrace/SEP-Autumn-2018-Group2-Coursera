@@ -11,10 +11,10 @@ from auth.users import User
 class OAuth2Backend:
     _local = local()
     access_token = {
-        "access_token": "dX5aqKGeG8QZU5CrUkVBatMvgtrgVQ",
+        "access_token": settings.AUTHORIZATION_SERVER_ACCESS_TOKEN,
         "token_type": "Bearer",
         "scope": ["read", "write", "introspection"],
-        "expires_at": 1696232955.0,
+        "expires_at": 1_696_232_955.0,
     }
 
     def get_introspection_client(self):
@@ -29,7 +29,7 @@ class OAuth2Backend:
         if request.META.get("HTTP_AUTHORIZATION", "").startswith("Bearer"):
             token = request.META["HTTP_AUTHORIZATION"][len("Bearer") :].strip()
             response = client.post(
-                "https://dashit.win.tue.nl/o/introspect/",
+                f"{settings.AUTHORIZATION_SERVER_URL}/o/introspect/",
                 data={"token": token, "platform": "coursera"},
             )
             if response.status_code == 200:
