@@ -2,8 +2,6 @@ import pytest
 from django.contrib.auth import authenticate
 from django.urls import reverse
 
-INTROSPECTION_URL = "https://dashit.win.tue.nl/o/introspect/"
-
 
 @pytest.mark.django_db
 def test_invalid_token_request(api_client, invalid_token_mock):

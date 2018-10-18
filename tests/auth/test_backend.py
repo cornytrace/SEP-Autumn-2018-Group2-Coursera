@@ -1,7 +1,8 @@
 import pytest
+from django.conf import settings
 from django.contrib.auth import authenticate
 
-INTROSPECTION_URL = "https://dashit.win.tue.nl/o/introspect/"
+INTROSPECTION_URL = f"{settings.AUTHORIZATION_SERVER_URL}/o/introspect/"
 
 
 def test_unauthorized_user(rf):

@@ -66,7 +66,7 @@ def teacher_api_client(teacher):
 @pytest.fixture
 def valid_token_mock(requests_mock, teacher):
     requests_mock.post(
-        "https://dashit.win.tue.nl/o/introspect/",
+        f"{settings.AUTHORIZATION_SERVER_URL}/o/introspect/",
         json={
             "username": teacher.username,
             "active": teacher.is_authenticated,
@@ -80,13 +80,15 @@ def valid_token_mock(requests_mock, teacher):
 @pytest.fixture
 def invalid_token_mock(requests_mock):
     requests_mock.post(
-        "https://dashit.win.tue.nl/o/introspect/", json={"active": False}
+        f"{settings.AUTHORIZATION_SERVER_URL}/o/introspect/", json={"active": False}
     )
 
 
 @pytest.fixture
 def unauthorized_request_mock(requests_mock):
-    requests_mock.post("https://dashit.win.tue.nl/o/introspect/", status_code=403)
+    requests_mock.post(
+        f"{settings.AUTHORIZATION_SERVER_URL}/o/introspect/", status_code=403
+    )
 
 
 @pytest.fixture
