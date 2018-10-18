@@ -33,7 +33,103 @@ class ItemSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = ["id", "slug", "name", "level"]
+        fields = ["id", "slug", "name", "level", "enrolled_learners",
+            "leaving_learners", "ratings","finished_learners",]
+
+    enrolled_learners = serializers.SerializerMethodField()
+    leaving_learners = serializers.SerializerMethodField()
+    finished_learners = serializers.SerializerMethodField()
+    ratings = serializers.SerializerMethodField()
+
+    @cached_property
+    def filter(self):
+        def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
+
+        return partial(
+            get_filterset, self.context["request"].GET, request=self.context["request"]
+        )
+
+    def _filter_current_branch(self, course_id):
+        """
+        Return a filtered queryset with just the current branch for `course_id`.
+        """
+        return Branch.objects.filter(
+            pk=Subquery(
+                Branch.objects.filter(course_id=course_id)
+                .order_by(F("authoring_course_branch_created_ts").desc(nulls_last=True))
+                .values("pk")[:1]
+            )
+        )
+
+    def get_enrolled_learners(self, obj):
+        """
+        Return the number of members for `obj` with either a LEARNER
+        or PRE_ENROLLED_LEARNER status.
+        """
+        return obj.enrolled_learners
+
+    def get_leaving_learners(self, obj):
+        """
+        Return the number of members for `obj` that have a LEARNER
+        or PRE_ENROLLED_LEARNER status, have not finished the course
+        and had their last activity more than 6 weeks ago.
+        """
+        try:
+            return obj.leaving_learners
+        except AttributeError:
+            return (
+                CourseMembership.objects.filter(course_id=obj.pk)
+                .filter(
+                    role__in=[
+                        CourseMembership.LEARNER,
+                        CourseMembership.PRE_ENROLLED_LEARNER,
+                    ]
+                )
+                .values("eitdigital_user_id")
+                .difference(
+                    Grade.objects.filter(course_id=obj.pk)
+                    .filter(passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED])
+                    .values("eitdigital_user_id")
+                )
+                .difference(
+                    CourseProgress.objects.filter(course_id=obj.pk)
+                    .filter(timestamp__gt=now() - timedelta(weeks=6))
+                    .values("eitdigital_user_id")
+                )
+                .count()
+            )
+
+    def get_finished_learners(self, obj):
+        """
+        Return the number of members for `obj` that have a a passing grade.
+        """
+        return obj.finished_learners
+
+    def get_ratings(self, obj):
+        """
+        Return the number of ratings for each rating from 1 to 10 for `obj`,
+        from either a first-week or end-of-course Net Promotor Score (NPS).
+        """
+        try:
+            ratings = obj.ratings
+        except AttributeError:
+            ratings = list(
+                self.filter(CourseRating.objects.filter(course_id=obj.pk))
+                .filter(
+                    feedback_system__in=[
+                        CourseRating.NPS_FIRST_WEEK,
+                        CourseRating.NPS_END_OF_COURSE,
+                    ]
+                )
+                .values_list("rating")
+                .annotate(Count("id"))
+                .order_by("rating")
+            )
+        missing = set(range(1, 11)) - {rating for rating, _ in ratings}
+        for i in missing:
+            ratings.insert(i - 1, (i, 0))
+        return ratings
 
 
 class QuizSerializer(serializers.ModelSerializer):
@@ -217,15 +313,11 @@ class VideoAnalyticsSerializer(ItemSerializer):
 class CourseAnalyticsSerializer(CourseSerializer):
     class Meta(CourseSerializer.Meta):
         fields = CourseSerializer.Meta.fields + [
-            "enrolled_learners",
-            "leaving_learners",
-            "finished_learners",
             "modules",
             "quizzes",
             "assignments",
             "videos",
             "cohorts",
-            "ratings",
             "finished_learners_over_time",
             "leaving_learners_per_module",
             "average_time",
@@ -233,85 +325,16 @@ class CourseAnalyticsSerializer(CourseSerializer):
             "geo_data",
         ]
 
-    enrolled_learners = serializers.SerializerMethodField()
-    leaving_learners = serializers.SerializerMethodField()
-    finished_learners = serializers.SerializerMethodField()
     modules = serializers.SerializerMethodField()
     quizzes = serializers.SerializerMethodField()
     assignments = serializers.SerializerMethodField()
     videos = serializers.SerializerMethodField()
     cohorts = serializers.SerializerMethodField()
-    ratings = serializers.SerializerMethodField()
     finished_learners_over_time = serializers.SerializerMethodField()
     leaving_learners_per_module = serializers.SerializerMethodField()
     average_time = serializers.SerializerMethodField()
     average_time_per_module = serializers.SerializerMethodField()
     geo_data = serializers.SerializerMethodField()
-
-    @cached_property
-    def filter(self):
-        def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
-            return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
-
-        return partial(
-            get_filterset, self.context["request"].GET, request=self.context["request"]
-        )
-
-    def _filter_current_branch(self, course_id):
-        """
-        Return a filtered queryset with just the current branch for `course_id`.
-        """
-        return Branch.objects.filter(
-            pk=Subquery(
-                Branch.objects.filter(course_id=course_id)
-                .order_by(F("authoring_course_branch_created_ts").desc(nulls_last=True))
-                .values("pk")[:1]
-            )
-        )
-
-    def get_enrolled_learners(self, obj):
-        """
-        Return the number of members for `obj` with either a LEARNER
-        or PRE_ENROLLED_LEARNER status.
-        """
-        return obj.enrolled_learners
-
-    def get_leaving_learners(self, obj):
-        """
-        Return the number of members for `obj` that have a LEARNER
-        or PRE_ENROLLED_LEARNER status, have not finished the course
-        and had their last activity more than 6 weeks ago.
-        """
-        try:
-            return obj.leaving_learners
-        except AttributeError:
-            return (
-                CourseMembership.objects.filter(course_id=obj.pk)
-                .filter(
-                    role__in=[
-                        CourseMembership.LEARNER,
-                        CourseMembership.PRE_ENROLLED_LEARNER,
-                    ]
-                )
-                .values("eitdigital_user_id")
-                .difference(
-                    Grade.objects.filter(course_id=obj.pk)
-                    .filter(passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED])
-                    .values("eitdigital_user_id")
-                )
-                .difference(
-                    CourseProgress.objects.filter(course_id=obj.pk)
-                    .filter(timestamp__gt=now() - timedelta(weeks=6))
-                    .values("eitdigital_user_id")
-                )
-                .count()
-            )
-
-    def get_finished_learners(self, obj):
-        """
-        Return the number of members for `obj` that have a a passing grade.
-        """
-        return obj.finished_learners
 
     def get_modules(self, obj):
         """
@@ -345,31 +368,6 @@ class CourseAnalyticsSerializer(CourseSerializer):
         Return the number of cohorts (on-demand sessions) for `obj`.
         """
         return obj.cohorts
-
-    def get_ratings(self, obj):
-        """
-        Return the number of ratings for each rating from 1 to 10 for `obj`,
-        from either a first-week or end-of-course Net Promotor Score (NPS).
-        """
-        try:
-            ratings = obj.ratings
-        except AttributeError:
-            ratings = list(
-                self.filter(CourseRating.objects.filter(course_id=obj.pk))
-                .filter(
-                    feedback_system__in=[
-                        CourseRating.NPS_FIRST_WEEK,
-                        CourseRating.NPS_END_OF_COURSE,
-                    ]
-                )
-                .values_list("rating")
-                .annotate(Count("id"))
-                .order_by("rating")
-            )
-        missing = set(range(1, 11)) - {rating for rating, _ in ratings}
-        for i in missing:
-            ratings.insert(i - 1, (i, 0))
-        return ratings
 
     def get_finished_learners_over_time(self, obj):
         """

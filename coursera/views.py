@@ -38,7 +38,13 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        queryset = super().get_queryset().filter(id__in=self.request.user.courses)
+        queryset = (
+            super()
+            .get_queryset()
+            .filter(id__in=self.request.user.courses)
+            .with_enrolled_learners(self.generic_filterset)
+            .with_finished_learners(self.generic_filterset)
+        )
         if self.action == "retrieve":
             queryset = (
                 queryset.with_enrolled_learners(self.generic_filterset)

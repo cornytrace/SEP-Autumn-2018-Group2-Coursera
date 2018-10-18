@@ -187,7 +187,16 @@ def test_course_analytics_no_permissions(teacher_api_client):
 @pytest.mark.django_db
 def test_course_list_view(teacher_api_client):
     response = teacher_api_client.get(reverse("coursera-api:course-list"))
-    keys = ["id", "slug", "name", "level"]
+    keys = [
+        "id",
+        "slug",
+        "name",
+        "level",
+        "enrolled_learners",
+        "leaving_learners",
+        "ratings",
+        "finished_learners",
+    ]
     assert response.status_code == 200, str(response.content)
     assert len(response.data) > 0, "no courses returned"
     for item in response.data:
