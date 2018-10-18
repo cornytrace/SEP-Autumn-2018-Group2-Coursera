@@ -406,6 +406,7 @@ def test_quiz_analytics_view(
         "type",
         "update_timestamp",
         "passing_fraction",
+        "graded",
         "average_grade",
         "grade_distribution",
         "average_attempts",
@@ -543,6 +544,7 @@ def test_quiz_version_list_view(
         "type",
         "update_timestamp",
         "passing_fraction",
+        "graded",
     ]
     assert response.status_code == 200, str(response.content)
     assert len(response.data) > 0, "no quizzes returned"
@@ -563,6 +565,7 @@ def test_quiz_list_view(teacher_api_client, coursera_course_id):
         "type",
         "update_timestamp",
         "passing_fraction",
+        "graded",
     ]
     assert response.status_code == 200, str(response.content)
     assert len(response.data) > 0, "no quizzes returned"

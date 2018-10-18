@@ -47,9 +47,11 @@ class QuizSerializer(serializers.ModelSerializer):
             "type",
             "update_timestamp",
             "passing_fraction",
+            "graded",
         ]
 
     name = serializers.CharField()
+    graded = serializers.BooleanField()
 
 
 class VideoAnalyticsSerializer(ItemSerializer):

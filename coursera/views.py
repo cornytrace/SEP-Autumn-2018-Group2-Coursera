@@ -108,6 +108,7 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
             .filter(items__branch=self.kwargs["course_id"])
             .order_by("base_id", "version")
             .annotate(name=F("items__name"))
+            .annotate(graded=F("items__type__graded"))
         )
         if self.action == "retrieve":
             queryset = queryset.with_average_grade(self.generic_filterset)
