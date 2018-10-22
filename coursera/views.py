@@ -77,8 +77,8 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
         return (
             super()
             .get_queryset()
-            .filter(branch__in=self.request.user.courses)
-            .filter(branch=self.kwargs["course_id"])
+            .filter(branch__course__in=self.request.user.courses)
+            .filter(branch__course=self.kwargs["course_id"])
         )
 
 
@@ -110,8 +110,8 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
         queryset = (
             super()
             .get_queryset()
-            .filter(items__branch__in=self.request.user.courses)
-            .filter(items__branch=self.kwargs["course_id"])
+            .filter(items__branch__course__in=self.request.user.courses)
+            .filter(items__branch__course=self.kwargs["course_id"])
             .order_by("base_id", "version")
             .annotate(name=F("items__name"))
             .annotate(graded=F("items__type__graded"))
@@ -156,8 +156,8 @@ class AssignmentAnalyticsViewSet(ReadOnlyModelViewSet):
         queryset = (
             super()
             .get_queryset()
-            .filter(branch__in=self.request.user.courses)
-            .filter(branch=self.kwargs["course_id"])
+            .filter(branch__course__in=self.request.user.courses)
+            .filter(branch__course=self.kwargs["course_id"])
         )
         if self.action == "retrieve":
             queryset = (
