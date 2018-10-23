@@ -8,4 +8,5 @@ from .discussion import *
 from .feedback import *
 from .grades import *
 from .sessions import *
+from .specializations import *
 from .users import *
