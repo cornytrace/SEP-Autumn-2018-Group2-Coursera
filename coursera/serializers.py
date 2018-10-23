@@ -33,9 +33,20 @@ class ItemSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = ["id", "slug", "name", "level", "enrolled_learners",
-            "leaving_learners", "ratings","finished_learners","paying_learners"]
+        fields = [
+            "id",
+            "slug",
+            "name",
+            "specialization",
+            "level",
+            "enrolled_learners",
+            "leaving_learners",
+            "ratings",
+            "finished_learners",
+            "paying_learners",
+        ]
 
+    specialization = serializers.CharField()
     enrolled_learners = serializers.IntegerField()
     leaving_learners = serializers.SerializerMethodField()
     finished_learners = serializers.IntegerField()
@@ -190,7 +201,11 @@ class VideoAnalyticsSerializer(ItemSerializer):
                     value_json__item_id=obj.item_id,
                     key="start",
                 )
-            ).aggregate(watchers_for_video=Coalesce(Count("eitdigital_user_id", distinct=True), 0))[
+            ).aggregate(
+                watchers_for_video=Coalesce(
+                    Count("eitdigital_user_id", distinct=True), 0
+                )
+            )[
                 "watchers_for_video"
             ]
 
@@ -204,7 +219,11 @@ class VideoAnalyticsSerializer(ItemSerializer):
                 ).filter(
                     course_id=obj.branch_id, value_json__item_id=obj.item_id, key="end"
                 )
-            ).aggregate(watchers_for_video=Coalesce(Count("eitdigital_user_id", distinct=True), 0))[
+            ).aggregate(
+                watchers_for_video=Coalesce(
+                    Count("eitdigital_user_id", distinct=True), 0
+                )
+            )[
                 "watchers_for_video"
             ]
 
@@ -433,9 +452,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
             )
 
     def get_cohort_list(self, obj):
-        return list(
-            obj.sessions.values_list('timestamp', 'end_timestamp')
-        )
+        return list(obj.sessions.values_list("timestamp", "end_timestamp"))
 
 
 class QuizAnalyticsSerializer(QuizSerializer):
@@ -521,19 +538,26 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_correct_ratio_per_question(self, obj):
-        queryset = self.filter(obj.answer_count.values_list("question_id").order_by('question_id'))
+        queryset = self.filter(
+            obj.answer_count.values_list("question_id").order_by("question_id")
+        )
         if "from_date" in self.context["request"].GET:
             return list(
                 queryset.annotate(
                     ratio=Cast(
                         Max("count_correct") - Min("count_correct"), FloatField()
                     )
-                    / NullIf(Max("count_selected") - Min("count_selected"), 0, output_field=FloatField())
+                    / NullIf(
+                        Max("count_selected") - Min("count_selected"),
+                        0,
+                        output_field=FloatField(),
+                    )
                 )
             )
         return list(
             queryset.annotate(
-                ratio=Cast(Max("count_correct"), FloatField()) / NullIf(Max("count_selected"), 0, output_field=FloatField())
+                ratio=Cast(Max("count_correct"), FloatField())
+                / NullIf(Max("count_selected"), 0, output_field=FloatField())
             )
         )
 
@@ -589,6 +613,7 @@ class QuizAnalyticsSerializer(QuizSerializer):
                 ).values_list("grade")
             ).annotate(count=Count("eitdigital_user_id"))
         )
+
 
 class AssignmentAnalyticsSerializer(ItemSerializer):
     class Meta(ItemSerializer.Meta):

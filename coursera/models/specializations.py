@@ -22,7 +22,9 @@ class Specialization(models.Model):
         db_column="specialization_primary_subdomain", max_length=255
     )
 
-    courses = models.ManyToManyField("Course", through="CourseSpecialization")
+    courses = models.ManyToManyField(
+        "Course", through="CourseSpecialization", related_name="specializations"
+    )
 
     class Meta:
         managed = False
