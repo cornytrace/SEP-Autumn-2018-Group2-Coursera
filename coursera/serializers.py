@@ -34,11 +34,12 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ["id", "slug", "name", "level", "enrolled_learners",
-            "leaving_learners", "ratings","finished_learners",]
+            "leaving_learners", "ratings","finished_learners","paying_learners"]
 
-    enrolled_learners = serializers.SerializerMethodField()
+    enrolled_learners = serializers.IntegerField()
     leaving_learners = serializers.SerializerMethodField()
-    finished_learners = serializers.SerializerMethodField()
+    finished_learners = serializers.IntegerField()
+    paying_learners = serializers.IntegerField()
     ratings = serializers.SerializerMethodField()
 
     @cached_property
@@ -61,13 +62,6 @@ class CourseSerializer(serializers.ModelSerializer):
                 .values("pk")[:1]
             )
         )
-
-    def get_enrolled_learners(self, obj):
-        """
-        Return the number of members for `obj` with either a LEARNER
-        or PRE_ENROLLED_LEARNER status.
-        """
-        return obj.enrolled_learners
 
     def get_leaving_learners(self, obj):
         """
@@ -99,12 +93,6 @@ class CourseSerializer(serializers.ModelSerializer):
                 )
                 .count()
             )
-
-    def get_finished_learners(self, obj):
-        """
-        Return the number of members for `obj` that have a a passing grade.
-        """
-        return obj.finished_learners
 
     def get_ratings(self, obj):
         """
@@ -325,49 +313,16 @@ class CourseAnalyticsSerializer(CourseSerializer):
             "geo_data",
         ]
 
-    modules = serializers.SerializerMethodField()
-    quizzes = serializers.SerializerMethodField()
-    assignments = serializers.SerializerMethodField()
-    videos = serializers.SerializerMethodField()
-    cohorts = serializers.SerializerMethodField()
+    modules = serializers.IntegerField()
+    quizzes = serializers.IntegerField()
+    assignments = serializers.IntegerField()
+    videos = serializers.IntegerField()
+    cohorts = serializers.IntegerField()
     finished_learners_over_time = serializers.SerializerMethodField()
     leaving_learners_per_module = serializers.SerializerMethodField()
     average_time = serializers.SerializerMethodField()
     average_time_per_module = serializers.SerializerMethodField()
     geo_data = serializers.SerializerMethodField()
-
-    def get_modules(self, obj):
-        """
-        Return the number of modules for `obj`'s most recent branch.
-        """
-        return obj.modules
-
-    def get_quizzes(self, obj):
-        """
-        Return the number of quizzes (assessments) for `obj`'s most recent
-        branch.
-        """
-        return obj.quizzes
-
-    def get_assignments(self, obj):
-        """
-        Return the number of peer- and programming assignments for `obj`'s
-        most recent branch.
-        """
-        return obj.assignments
-
-    def get_videos(self, obj):
-        """
-        Return the number of videos (lecture items) for `obj`'s most recent
-        branch.
-        """
-        return obj.videos
-
-    def get_cohorts(self, obj):
-        """
-        Return the number of cohorts (on-demand sessions) for `obj`.
-        """
-        return obj.cohorts
 
     def get_finished_learners_over_time(self, obj):
         """
@@ -421,10 +376,6 @@ class CourseAnalyticsSerializer(CourseSerializer):
             )
 
     def get_average_time(self, obj):
-        """
-        Return the average time that users spend on this course, that is
-        the time between the user's first activity and last activity.
-        """
         return obj.average_time
 
     def get_average_time_per_module(self, obj):
@@ -640,15 +591,6 @@ class AssignmentAnalyticsSerializer(ItemSerializer):
             "average_grade",
         ]
 
-    submissions = serializers.SerializerMethodField()
-    submission_ratio = serializers.SerializerMethodField()
-    average_grade = serializers.SerializerMethodField()
-
-    def get_submissions(self, obj):
-        return obj.submissions
-
-    def get_submission_ratio(self, obj):
-        return obj.submission_ratio
-
-    def get_average_grade(self, obj):
-        return obj.average_grade
+    submissions = serializers.IntegerField()
+    submission_ratio = serializers.FloatField()
+    average_grade = serializers.FloatField()

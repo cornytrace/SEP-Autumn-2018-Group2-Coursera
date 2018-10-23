@@ -44,12 +44,12 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
             .filter(id__in=self.request.user.courses)
             .with_enrolled_learners(self.generic_filterset)
             .with_finished_learners(self.generic_filterset)
+            .with_paying_learners(self.generic_filterset)
         )
         if self.action == "retrieve":
             queryset = (
-                queryset.with_enrolled_learners(self.generic_filterset)
+                queryset
                 # .with_leaving_learners()
-                .with_finished_learners(self.generic_filterset)
                 .with_modules()
                 .with_quizzes()
                 .with_assignments()

@@ -2,7 +2,7 @@ from django.db import models
 
 from .course_structure import Country2To3
 
-__all__ = ["EITDigitalUser", "CourseMembership"]
+__all__ = ["EITDigitalUser", "CourseMembership", "CertificatePayment"]
 
 
 class EITDigitalUser(models.Model):
@@ -73,3 +73,21 @@ class CourseMembership(models.Model):
         managed = False
         db_table = "course_memberships_view"
         unique_together = ("eitdigital_user", "course", "timestamp")
+
+
+class CertificatePayment(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser", related_name="payments", on_delete=models.DO_NOTHING
+    )
+    course = models.ForeignKey(
+        "Course", related_name="payments", on_delete=models.DO_NOTHING
+    )
+    met_payment_condition = models.BooleanField(db_column="met_payment_condition")
+    was_payment = models.BooleanField(db_column="was_payment")
+    was_finaid_grant = models.BooleanField(db_column="was_finaid_grant")
+    was_group_sponsored = models.BooleanField(db_column="was_group_sponsored")
+
+    class Meta:
+        managed = False
+        db_table = "course_payments_view"

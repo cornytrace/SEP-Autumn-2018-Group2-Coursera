@@ -27,6 +27,7 @@ def test_course_analytics_view(
         "enrolled_learners": 5453,
         "leaving_learners": 5294,
         "finished_learners": 47,
+        "paying_learners": 151,
         "modules": 10,
         "quizzes": 27,
         "assignments": 15,
@@ -116,6 +117,7 @@ def test_course_analytics_date_filter(
         "enrolled_learners",
         # "leaving_learners",
         "finished_learners",
+        "paying_learners",
         "modules",
         "quizzes",
         "assignments",
@@ -155,6 +157,7 @@ def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_cou
         "enrolled_learners",
         # "leaving_learners",
         "finished_learners",
+        # "paying_learners",
         "cohorts",
     ]
     list_keys = [
@@ -196,6 +199,7 @@ def test_course_list_view(teacher_api_client):
         "leaving_learners",
         "ratings",
         "finished_learners",
+        "paying_learners",
     ]
     assert response.status_code == 200, str(response.content)
     assert len(response.data) > 0, "no courses returned"
@@ -595,7 +599,19 @@ def test_assignment_analytics_view(
             kwargs={"course_id": coursera_course_id, "item_id": coursera_assignment_id},
         )
     )
-    keys = ["id", "branch", "item_id", "lesson", "order", "type", "name", "optional", "submissions", "submission_ratio", "average_grade"]
+    keys = [
+        "id",
+        "branch",
+        "item_id",
+        "lesson",
+        "order",
+        "type",
+        "name",
+        "optional",
+        "submissions",
+        "submission_ratio",
+        "average_grade",
+    ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys
 
@@ -619,7 +635,7 @@ def test_assignment_analytics_date_filter(
         )
     )
     assert filtered_response.status_code == 200, str(filtered_response.content)
-    
+
     assert filtered_response.data["submissions"] <= response.data["submissions"]
 
 
@@ -636,18 +652,16 @@ def test_assignment_analytics_date_filter_in_future(
         + (date.today() + timedelta(days=10 * 365)).strftime("%Y-%m-%d")
     )
     assert filtered_response.status_code == 200, str(filtered_response.content)
-    simple_keys = [
-        "submissions",
-        "submission_ratio",
-        "average_grade",
-    ]
+    simple_keys = ["submissions", "submission_ratio", "average_grade"]
 
     for key in simple_keys:
         assert filtered_response.data[key] == 0, key
 
 
 @pytest.mark.django_db
-def test_assignment_analytics_no_permissions(teacher_api_client, coursera_assignment_id):
+def test_assignment_analytics_no_permissions(
+    teacher_api_client, coursera_assignment_id
+):
     response = teacher_api_client.get(
         reverse(
             "coursera-api:assignment-detail",
@@ -662,10 +676,13 @@ def test_assignment_analytics_no_permissions(teacher_api_client, coursera_assign
         (response.status_code == 200) and (response.data == "[]")
     ), str(response.content)
 
+
 @pytest.mark.django_db
 def test_assignment_list_view(teacher_api_client, coursera_course_id):
     response = teacher_api_client.get(
-        reverse("coursera-api:assignment-list", kwargs={"course_id": coursera_course_id})
+        reverse(
+            "coursera-api:assignment-list", kwargs={"course_id": coursera_course_id}
+        )
     )
     keys = ["id", "branch", "item_id", "lesson", "order", "type", "name", "optional"]
     assert response.status_code == 200, str(response.content)

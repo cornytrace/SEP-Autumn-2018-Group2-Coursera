@@ -14,7 +14,7 @@ from .course_structure import Item, ItemType, Module
 from .feedback import CourseRating
 from .grades import Grade
 from .sessions import OnDemandSession
-from .users import CourseMembership
+from .users import CertificatePayment, CourseMembership
 
 __all__ = ["Course", "Branch"]
 
@@ -75,6 +75,13 @@ class CourseQuerySet(models.QuerySet):
                         passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED]
                     )
                 )
+            )
+        )
+
+    def with_paying_learners(self, filter):
+        return self.annotate(
+            paying_learners=CountSubquery(
+                CertificatePayment.objects.filter(course_id=OuterRef("pk"))
             )
         )
 

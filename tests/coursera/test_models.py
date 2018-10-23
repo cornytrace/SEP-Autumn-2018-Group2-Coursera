@@ -5,7 +5,9 @@ from django.db.models.base import ModelBase
 from coursera import models
 
 model_list = [
-    model for model in models.__dict__.values() if isinstance(model, ModelBase)
+    model
+    for model in models.__dict__.values()
+    if isinstance(model, ModelBase) and model is not models.ItemProgrammingAssignment
 ]
 
 
