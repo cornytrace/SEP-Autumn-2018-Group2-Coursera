@@ -311,6 +311,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
             "average_time",
             "average_time_per_module",
             "geo_data",
+            "cohort_list",
         ]
 
     modules = serializers.IntegerField()
@@ -323,6 +324,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
     average_time = serializers.SerializerMethodField()
     average_time_per_module = serializers.SerializerMethodField()
     geo_data = serializers.SerializerMethodField()
+    cohort_list = serializers.SerializerMethodField()
 
     def get_finished_learners_over_time(self, obj):
         """
@@ -429,6 +431,11 @@ class CourseAnalyticsSerializer(CourseSerializer):
                 .values_list("three_let", "country_name")
                 .annotate(country_count=Count("eitdigital_user_id"))
             )
+
+    def get_cohort_list(self, obj):
+        return list(
+            obj.sessions.values_list('timestamp', 'end_timestamp')
+        )
 
 
 class QuizAnalyticsSerializer(QuizSerializer):

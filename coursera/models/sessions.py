@@ -9,9 +9,6 @@ class OnDemandSession(models.Model):
         related_name="sessions",
         on_delete=models.DO_NOTHING,
         db_column="course_id",
-        max_length=50,
-        blank=True,
-        null=True,
     )
     id = models.CharField(
         db_column="on_demand_session_id", max_length=50, primary_key=True
