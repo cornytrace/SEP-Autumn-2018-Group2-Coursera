@@ -752,7 +752,7 @@ class QuizAnalyticsSerializer(QuizSerializer):
                     ),
                 }
             except IndexError:
-                return {"item_id": "", "type": 0, "category": ""}
+                return {"assessment_id": "", "assessment_version": 0}
 
 
 class AssignmentAnalyticsSerializer(ItemSerializer):
