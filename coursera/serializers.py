@@ -2,9 +2,23 @@ from datetime import date, timedelta
 from functools import partial
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (Avg, Count, DateField, DateTimeField,
-                              DecimalField, F, FloatField, Func, Max, Min,
-                              OuterRef, Q, Subquery, Sum, Window)
+from django.db.models import (
+    Avg,
+    Count,
+    DateField,
+    DateTimeField,
+    DecimalField,
+    F,
+    FloatField,
+    Func,
+    Max,
+    Min,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    Window,
+)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.functional import cached_property
 from django.utils.timezone import now
@@ -356,7 +370,10 @@ class VideoAnalyticsSerializer(ItemSerializer):
         except AttributeError:
             try:
                 item = Item.objects.filter(
-                    branch=obj.branch, lesson=obj.lesson, order__gt=obj.order, type__id=1
+                    branch=obj.branch,
+                    lesson=obj.lesson,
+                    order__gt=obj.order,
+                    type__id=1,
                 ).order_by("order")[0]
                 return {
                     "item_id": item.item_id,
@@ -440,23 +457,40 @@ class CourseAnalyticsSerializer(CourseSerializer):
         haven't passed the course and whose activity furtherst in the course
         was in that module.
         """
-        try:
-            return obj.leaving_learners_per_module
-        except AttributeError:
-            return list(
-                self._filter_current_branch(obj.pk)
-                .get()
-                .modules.values_list("module_id")
-                .annotate(
-                    user_count=Count(
-                        "last_activity",
-                        filter=Q(
-                            last_activity__timestamp__lt=now() - timedelta(weeks=6)
-                        ),
-                    )
-                )
-                .order_by("order")
+        form = GenericFilterSet(
+            self.context["request"].GET,
+            CourseMembership.objects.none(),
+            request=self.context["request"],
+        ).form
+        form.errors
+        from_date = form.cleaned_data.get("from_date")
+        to_date = form.cleaned_data.get("to_date")
+
+        if not to_date:
+            to_date = now()
+
+        if from_date and from_date > to_date:
+            to_date = from_date
+
+        subquery = CountSubquery(
+            LastActivityPerModule.objects.filter(module_id=OuterRef("pk")).filter(
+                timestamp__lt=to_date - timedelta(weeks=6)
             )
+        )
+        if from_date:
+            subquery -= CountSubquery(
+                LastActivityPerModule.objects.filter(module_id=OuterRef("pk")).filter(
+                    timestamp__lt=from_date - timedelta(weeks=6)
+                )
+            )
+
+        return list(
+            self._filter_current_branch(obj.pk)
+            .get()
+            .modules.values_list("module_id")
+            .annotate(user_count=subquery)
+            .order_by("order")
+        )
 
     def get_average_time(self, obj):
         return obj.average_time
@@ -686,7 +720,9 @@ class QuizAnalyticsSerializer(QuizSerializer):
         except AttributeError:
             try:
                 item = Item.objects.get(
-                    branch=obj.items.all()[0].branch, lesson=obj.items.all()[0].lesson, order=obj.items.all()[0].order + 1
+                    branch=obj.items.all()[0].branch,
+                    lesson=obj.items.all()[0].lesson,
+                    order=obj.items.all()[0].order + 1,
                 )
                 return {
                     "item_id": item.item_id,
@@ -702,22 +738,22 @@ class QuizAnalyticsSerializer(QuizSerializer):
         except AttributeError:
             try:
                 item = Item.objects.filter(
-                    branch=obj.items.all()[0].branch, lesson=obj.items.all()[0].lesson, order__gt=obj.items.all()[0].order, type__category="quiz"
+                    branch=obj.items.all()[0].branch,
+                    lesson=obj.items.all()[0].lesson,
+                    order__gt=obj.items.all()[0].order,
+                    type__category="quiz",
                 ).order_by("order")[0]
                 return {
                     "assessment_id": getattr(
-                            item.assessments.order_by("-version").first(),
-                            "base_id",
-                            None,
-                        ),
+                        item.assessments.order_by("-version").first(), "base_id", None
+                    ),
                     "assessment_version": getattr(
-                        item.assessments.order_by("-version").first(),
-                        "version",
-                        None,
+                        item.assessments.order_by("-version").first(), "version", None
                     ),
                 }
             except IndexError:
                 return {"item_id": "", "type": 0, "category": ""}
+
 
 class AssignmentAnalyticsSerializer(ItemSerializer):
     class Meta(ItemSerializer.Meta):
@@ -757,7 +793,7 @@ class AssignmentAnalyticsSerializer(ItemSerializer):
         except AttributeError:
             try:
                 item = Item.peer_assignment_objects.filter(
-                    branch=obj.branch, lesson=obj.lesson, order__gt=obj.order,
+                    branch=obj.branch, lesson=obj.lesson, order__gt=obj.order
                 ).order_by("order")[0]
                 return {
                     "item_id": item.item_id,

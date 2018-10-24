@@ -62,16 +62,10 @@ def test_course_analytics_date_filter(
         "enrolled_learners",
         "leaving_learners",
         "finished_learners",
-        "modules",
-        "quizzes",
-        "assignments",
-        "videos",
-        "cohorts",
     ]
     list_keys = [
         "ratings",
-        "finished_learners_over_time",
-        # "leaving_learners_per_module",
+        "leaving_learners_per_module",
     ]
 
     for key in simple_keys:
@@ -103,8 +97,7 @@ def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_cou
     ]
     list_keys = [
         "ratings",
-        "finished_learners_over_time",
-        # "leaving_learners_per_module",
+        "leaving_learners_per_module",
     ]
 
     for key in simple_keys:
