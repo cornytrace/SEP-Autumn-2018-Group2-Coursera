@@ -16,6 +16,11 @@ def coursera_course_id():
 
 
 @pytest.fixture
+def coursera_alt_course_id():
+    return "oWawIRajEeWEjBINzvDOWw"
+
+
+@pytest.fixture
 def coursera_video_id():
     return "jx3EZ"
 
@@ -52,7 +57,11 @@ def teacher(coursera_course_id):
         active=True,
         scope="read write",
         role="teacher",
-        courses=[coursera_course_id, "oWawIRajEeWEjBINzvDOWw"],
+        courses=[
+            coursera_course_id,
+            "oWawIRajEeWEjBINzvDOWw",
+            "V4m7Xf5qEeS9ISIACxWDhA",
+        ],
     )
 
 

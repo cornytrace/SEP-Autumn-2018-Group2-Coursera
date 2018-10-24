@@ -202,6 +202,7 @@ class VideoAnalyticsSerializer(ItemSerializer):
             "video_likes",
             "video_dislikes",
             "next_item",
+            "next_video",
             "views_over_runtime",
         ]
 
@@ -211,6 +212,7 @@ class VideoAnalyticsSerializer(ItemSerializer):
     video_likes = serializers.SerializerMethodField()
     video_dislikes = serializers.SerializerMethodField()
     next_item = serializers.SerializerMethodField()
+    next_video = serializers.SerializerMethodField()
     views_over_runtime = serializers.SerializerMethodField()
 
     @cached_property
@@ -346,6 +348,22 @@ class VideoAnalyticsSerializer(ItemSerializer):
                     "category": item.type.category,
                 }
             except Item.DoesNotExist:
+                return {"item_id": "", "type": 0, "category": ""}
+
+    def get_next_video(self, obj):
+        try:
+            return obj.next_video_id
+        except AttributeError:
+            try:
+                item = Item.objects.filter(
+                    branch=obj.branch, lesson=obj.lesson, order__gt=obj.order, type__id=1
+                ).order_by("order")[0]
+                return {
+                    "item_id": item.item_id,
+                    "type": item.type.id,
+                    "category": item.type.category,
+                }
+            except IndexError:
                 return {"item_id": "", "type": 0, "category": ""}
 
     def get_views_over_runtime(self, obj):
@@ -512,6 +530,8 @@ class QuizAnalyticsSerializer(QuizSerializer):
             "quiz_dislikes",
             "last_attempt_average_grade",
             "last_attempt_grade_distribution",
+            "next_item",
+            "next_quiz",
         ]
 
     average_grade = serializers.FloatField()
@@ -524,6 +544,8 @@ class QuizAnalyticsSerializer(QuizSerializer):
     quiz_dislikes = serializers.SerializerMethodField()
     last_attempt_average_grade = serializers.SerializerMethodField()
     last_attempt_grade_distribution = serializers.SerializerMethodField()
+    next_item = serializers.SerializerMethodField()
+    next_quiz = serializers.SerializerMethodField()
 
     @cached_property
     def filter(self):
@@ -658,6 +680,37 @@ class QuizAnalyticsSerializer(QuizSerializer):
             ).annotate(count=Count("eitdigital_user_id"))
         )
 
+    def get_next_item(self, obj):
+        try:
+            return obj.next_item_id
+        except AttributeError:
+            try:
+                item = Item.objects.get(
+                    branch=obj.items.all()[0].branch, lesson=obj.items.all()[0].lesson, order=obj.items.all()[0].order + 1
+                )
+                return {
+                    "item_id": item.item_id,
+                    "type": item.type.id,
+                    "category": item.type.category,
+                }
+            except Item.DoesNotExist:
+                return {"item_id": "", "type": 0, "category": ""}
+
+    def get_next_quiz(self, obj):
+        try:
+            return obj.next_video_id
+        except AttributeError:
+            try:
+                item = Item.objects.filter(
+                    branch=obj.items.all()[0].branch, lesson=obj.items.all()[0].lesson, order__gt=obj.items.all()[0].order, type__category="quiz"
+                ).order_by("order")[0]
+                return {
+                    "item_id": item.item_id,
+                    "type": item.type.id,
+                    "category": item.type.category,
+                }
+            except IndexError:
+                return {"item_id": "", "type": 0, "category": ""}
 
 class AssignmentAnalyticsSerializer(ItemSerializer):
     class Meta(ItemSerializer.Meta):
@@ -665,8 +718,44 @@ class AssignmentAnalyticsSerializer(ItemSerializer):
             "submissions",
             "submission_ratio",
             "average_grade",
+            "next_item",
+            "next_assignment",
         ]
 
     submissions = serializers.IntegerField()
     submission_ratio = serializers.FloatField()
     average_grade = serializers.FloatField()
+    next_item = serializers.SerializerMethodField()
+    next_assignment = serializers.SerializerMethodField()
+
+    def get_next_item(self, obj):
+        try:
+            return obj.next_item_id
+        except AttributeError:
+            try:
+                item = Item.objects.get(
+                    branch=obj.branch, lesson=obj.lesson, order=obj.order + 1
+                )
+                return {
+                    "item_id": item.item_id,
+                    "type": item.type.id,
+                    "category": item.type.category,
+                }
+            except Item.DoesNotExist:
+                return {"item_id": "", "type": 0, "category": ""}
+
+    def get_next_assignment(self, obj):
+        try:
+            return obj.next_video_id
+        except AttributeError:
+            try:
+                item = Item.peer_assignment_objects.filter(
+                    branch=obj.branch, lesson=obj.lesson, order__gt=obj.order,
+                ).order_by("order")[0]
+                return {
+                    "item_id": item.item_id,
+                    "type": item.type.id,
+                    "category": item.type.category,
+                }
+            except IndexError:
+                return {"item_id": "", "type": 0, "category": ""}

@@ -212,6 +212,7 @@ def test_video_analytics_view(
         "video_likes",
         "video_dislikes",
         "next_item",
+        "next_video",
         "views_over_runtime",
     ]
     assert response.status_code == 200, str(response.content)
@@ -317,6 +318,7 @@ def test_video_analytics_view_invalid_date_filter(
         "video_likes",
         "video_dislikes",
         "next_item",
+        "next_video",
         "views_over_runtime",
     ]
     assert response.status_code == 200, str(response.content)
@@ -362,12 +364,12 @@ def test_video_analytics_view_no_next_item(
 
 @pytest.mark.django_db
 def test_video_analytics_view_next_item(
-    teacher_api_client, coursera_course_id, coursera_video_id
+    teacher_api_client, coursera_alt_course_id, coursera_video_id
 ):
     response = teacher_api_client.get(
         reverse(
             "coursera-api:video-detail",
-            kwargs={"course_id": "oWawIRajEeWEjBINzvDOWw", "item_id": "Fzhxo"},
+            kwargs={"course_id": coursera_alt_course_id, "item_id": "Fzhxo"},
         )
     )
     assert response.status_code == 200, str(response.content)
@@ -444,6 +446,8 @@ def test_quiz_analytics_view(
         "quiz_dislikes",
         "last_attempt_average_grade",
         "last_attempt_grade_distribution",
+        "next_item",
+        "next_quiz",
     ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys
@@ -530,24 +534,18 @@ def test_quiz_analytics_date_filter_in_future(
         )
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("filter_type", ["from_date", "to_date"])
-def test_quiz_analytics_view_invalid_date_filter(
-    teacher_api_client,
-    coursera_course_id,
-    coursera_assessment_base_id,
-    coursera_assessment_version,
-    filter_type,
+def test_quiz_analytics_next_quiz(teacher_api_client,
+    coursera_alt_course_id,
 ):
     response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-detail",
             kwargs={
-                "course_id": coursera_course_id,
-                "base_id": coursera_assessment_base_id,
-                "version": coursera_assessment_version,
+                "course_id": coursera_alt_course_id,
+                "base_id": "9AgQAXM4EeWKJA7piulVWw",
+                "version": 4,
             },
         )
-        + f"?{filter_type}=invalid"
     )
     keys = [
         "id",
@@ -568,11 +566,11 @@ def test_quiz_analytics_view_invalid_date_filter(
         "quiz_dislikes",
         "last_attempt_average_grade",
         "last_attempt_grade_distribution",
+        "next_item",
+        "next_quiz",
     ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys
-
-
 
 @pytest.mark.django_db
 def test_quiz_analytics_no_permissions(
@@ -657,19 +655,21 @@ def test_assignment_analytics_view(
             kwargs={"course_id": coursera_course_id, "item_id": coursera_assignment_id},
         )
     )
-    keys = [
-        "id",
-        "branch",
-        "item_id",
-        "lesson",
-        "order",
-        "type",
-        "name",
-        "optional",
-        "submissions",
-        "submission_ratio",
-        "average_grade",
-    ]
+    keys = ["id", "branch", "item_id", "lesson", "order", "type", "name", "optional", "submissions", "submission_ratio", "average_grade", "next_item", "next_assignment"]
+    assert response.status_code == 200, str(response.content)
+    assert list(response.data.keys()) == keys
+
+@pytest.mark.django_db
+def test_assignment_analytics_view_next_assignment(
+    teacher_api_client, coursera_course_id, coursera_assignment_id
+):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:assignment-detail",
+            kwargs={"course_id": "V4m7Xf5qEeS9ISIACxWDhA", "item_id": "PoQSi"},
+        )
+    )
+    keys = ["id", "branch", "item_id", "lesson", "order", "type", "name", "optional", "submissions", "submission_ratio", "average_grade", "next_item", "next_assignment"]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys
 
@@ -740,6 +740,8 @@ def test_assignment_analytics_view_invalid_date_filter(
         "submissions",
         "submission_ratio",
         "average_grade",
+        "next_item",
+        "next_assignment"
     ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys
