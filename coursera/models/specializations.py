@@ -4,7 +4,9 @@ __all__ = ["Specialization", "CourseSpecialization"]
 
 
 class Specialization(models.Model):
-    id = models.CharField(db_column="specialization_id", primary_key=True)
+    id = models.CharField(
+        db_column="specialization_id", primary_key=True, max_length=50
+    )
     slug = models.CharField(db_column="specialization_slug", max_length=255)
     name = models.CharField(db_column="specialization_name", max_length=2000)
     display_page_launch_ts = models.DateTimeField(
