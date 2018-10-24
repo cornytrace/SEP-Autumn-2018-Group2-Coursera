@@ -2,23 +2,9 @@ from datetime import date, timedelta
 from functools import partial
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (
-    Avg,
-    Count,
-    DateField,
-    DateTimeField,
-    DecimalField,
-    F,
-    FloatField,
-    Func,
-    Max,
-    Min,
-    OuterRef,
-    Q,
-    Subquery,
-    Sum,
-    Window,
-)
+from django.db.models import (Avg, Count, DateField, DateTimeField,
+                              DecimalField, F, FloatField, Func, Max, Min,
+                              OuterRef, Q, Subquery, Sum, Window)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.functional import cached_property
 from django.utils.timezone import now
@@ -719,9 +705,16 @@ class QuizAnalyticsSerializer(QuizSerializer):
                     branch=obj.items.all()[0].branch, lesson=obj.items.all()[0].lesson, order__gt=obj.items.all()[0].order, type__category="quiz"
                 ).order_by("order")[0]
                 return {
-                    "item_id": item.item_id,
-                    "type": item.type.id,
-                    "category": item.type.category,
+                    "assessment_id": getattr(
+                            item.assessments.order_by("-version").first(),
+                            "base_id",
+                            None,
+                        ),
+                    "assessment_version": getattr(
+                        item.assessments.order_by("-version").first(),
+                        "version",
+                        None,
+                    ),
                 }
             except IndexError:
                 return {"item_id": "", "type": 0, "category": ""}
