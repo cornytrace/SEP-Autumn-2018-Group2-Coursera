@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 from functools import partial
 
 from django.contrib.postgres.fields import JSONField
@@ -80,11 +80,25 @@ class CourseSerializer(serializers.ModelSerializer):
         or PRE_ENROLLED_LEARNER status, have not finished the course
         and had their last activity more than 6 weeks ago.
         """
-        try:
-            return obj.leaving_learners
-        except AttributeError:
-            return (
+        form = GenericFilterSet(
+            self.context["request"].GET,
+            CourseMembership.objects.none(),
+            request=self.context["request"],
+        ).form
+        form.errors
+        from_date = form.cleaned_data.get("from_date")
+        to_date = form.cleaned_data.get("to_date")
+
+        if not to_date:
+            to_date = now()
+
+        if from_date and from_date > to_date:
+            to_date = from_date
+
+        if from_date:
+            past_leavers = (
                 CourseMembership.objects.filter(course_id=obj.pk)
+                .filter(timestamp__lte=from_date)
                 .filter(
                     role__in=[
                         CourseMembership.LEARNER,
@@ -94,16 +108,46 @@ class CourseSerializer(serializers.ModelSerializer):
                 .values("eitdigital_user_id")
                 .difference(
                     Grade.objects.filter(course_id=obj.pk)
+                    .filter(timestamp__lte=from_date)
                     .filter(passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED])
                     .values("eitdigital_user_id")
                 )
                 .difference(
                     CourseProgress.objects.filter(course_id=obj.pk)
-                    .filter(timestamp__gt=now() - timedelta(weeks=6))
+                    .filter(timestamp__lte=from_date)
+                    .filter(timestamp__gt=from_date - timedelta(weeks=6))
                     .values("eitdigital_user_id")
                 )
                 .count()
             )
+        else:
+            past_leavers = 0
+
+        return (
+            CourseMembership.objects.filter(course_id=obj.pk)
+            .filter(timestamp__lte=to_date)
+            .filter(
+                role__in=[
+                    CourseMembership.LEARNER,
+                    CourseMembership.PRE_ENROLLED_LEARNER,
+                ]
+            )
+            .values("eitdigital_user_id")
+            .difference(
+                Grade.objects.filter(course_id=obj.pk)
+                .filter(timestamp__lte=to_date)
+                .filter(passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED])
+                .values("eitdigital_user_id")
+            )
+            .difference(
+                CourseProgress.objects.filter(course_id=obj.pk)
+                .filter(timestamp__lte=to_date)
+                .filter(timestamp__gt=to_date - timedelta(weeks=6))
+                .values("eitdigital_user_id")
+            )
+            .count()
+            - past_leavers
+        )
 
     def get_ratings(self, obj):
         """
