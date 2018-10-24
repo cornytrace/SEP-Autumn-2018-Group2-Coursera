@@ -46,6 +46,7 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
             .with_finished_learners(self.generic_filterset)
             .with_paying_learners(self.generic_filterset)
             .annotate(specialization=F("specializations__name"))
+            .order_by("specialization", "name")
         )
         if self.action == "retrieve":
             queryset = (
