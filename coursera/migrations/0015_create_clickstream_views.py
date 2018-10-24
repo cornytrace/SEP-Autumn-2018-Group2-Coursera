@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                     os,
                     browser,
                     key,
-                    value::json
+                    value::jsonb
                 FROM
                     clickstream_events
                 """,

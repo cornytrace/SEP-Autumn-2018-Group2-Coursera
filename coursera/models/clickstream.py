@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 
 __all__ = ["ClickstreamEvent", "Heartbeat"]
@@ -20,7 +21,7 @@ class ClickstreamEvent(models.Model):
     os = models.CharField(max_length=100, blank=True, null=True)
     browser = models.CharField(max_length=100, blank=True, null=True)
     key = models.CharField(max_length=100, blank=True, null=True)
-    value = models.CharField(max_length=100, blank=True, null=True)
+    value = JSONField()
 
     class Meta:
         managed = False

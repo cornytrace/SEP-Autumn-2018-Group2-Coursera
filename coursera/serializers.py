@@ -2,23 +2,9 @@ from datetime import date, timedelta
 from functools import partial
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (
-    Avg,
-    Count,
-    DateField,
-    DateTimeField,
-    DecimalField,
-    F,
-    FloatField,
-    Func,
-    Max,
-    Min,
-    OuterRef,
-    Q,
-    Subquery,
-    Sum,
-    Window,
-)
+from django.db.models import (Avg, Count, DateField, DateTimeField,
+                              DecimalField, F, FloatField, Func, Max, Min,
+                              OuterRef, Q, Subquery, Sum, Window)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.functional import cached_property
 from django.utils.timezone import now
@@ -254,11 +240,9 @@ class VideoAnalyticsSerializer(ItemSerializer):
             return obj.watched_video
         except AttributeError:
             return self.clickstream_filter(
-                ClickstreamEvent.objects.annotate(
-                    value_json=Cast("value", output_field=JSONField())
-                ).filter(
+                ClickstreamEvent.objects.filter(
                     course_id=obj.branch_id,
-                    value_json__item_id=obj.item_id,
+                    value__item_id=obj.item_id,
                     key="start",
                 )
             ).aggregate(
@@ -274,10 +258,8 @@ class VideoAnalyticsSerializer(ItemSerializer):
             return obj.finished_video
         except AttributeError:
             return self.clickstream_filter(
-                ClickstreamEvent.objects.annotate(
-                    value_json=Cast("value", output_field=JSONField())
-                ).filter(
-                    course_id=obj.branch_id, value_json__item_id=obj.item_id, key="end"
+                ClickstreamEvent.objects.filter(
+                    course_id=obj.branch_id, value__item_id=obj.item_id, key="end"
                 )
             ).aggregate(
                 watchers_for_video=Coalesce(
