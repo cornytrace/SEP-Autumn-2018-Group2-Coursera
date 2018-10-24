@@ -2,9 +2,23 @@ from datetime import date, timedelta
 from functools import partial
 
 from django.contrib.postgres.fields import JSONField
-from django.db.models import (Avg, Count, DateField, DecimalField, F,
-                              FloatField, Func, Max, Min, OuterRef, Q,
-                              Subquery, Sum, Window)
+from django.db.models import (
+    Avg,
+    Count,
+    DateField,
+    DateTimeField,
+    DecimalField,
+    F,
+    FloatField,
+    Func,
+    Max,
+    Min,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    Window,
+)
 from django.db.models.functions import Cast, Coalesce, TruncMonth
 from django.utils.functional import cached_property
 from django.utils.timezone import now
@@ -12,7 +26,7 @@ from rest_framework import serializers
 
 from coursera.filters import ClickstreamEventFilterSet, GenericFilterSet
 from coursera.models import *
-from coursera.utils import CountSubquery, NullIf
+from coursera.utils import AvgSubquery, CountSubquery, NullIf
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -466,26 +480,26 @@ class CourseAnalyticsSerializer(CourseSerializer):
         For each module in course `obj`, return the average duration between
         each learners first activity and last activity in that module.
         """
-        try:
-            return obj.average_time_per_module
-        except AttributeError:
-            return list(
-                self._filter_current_branch(obj.pk)
-                .get()
-                .modules.values_list("module_id")
-                .filter(
-                    module_last_activity__eitdigital_user_id=F(
-                        "module_first_activity__eitdigital_user_id"
-                    )
+        return list(
+            self._filter_current_branch(obj.pk)
+            .get()
+            .modules.values_list("module_id")
+            .annotate(
+                average_time=Coalesce(
+                    AvgSubquery(
+                        self.filter(
+                            ModuleDuration.objects.filter(
+                                module_id=OuterRef("pk")
+                            ).values("duration")
+                        ),
+                        db_column="duration",
+                        output_field=DateTimeField(),
+                    ),
+                    timedelta(0),
                 )
-                .annotate(
-                    average_time=Avg(
-                        F("module_last_activity__timestamp")
-                        - F("module_first_activity__timestamp")
-                    )
-                )
-                .order_by("order")
             )
+            .order_by("order")
+        )
 
     def get_geo_data(self, obj):
         """

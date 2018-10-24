@@ -5,6 +5,7 @@ __all__ = [
     "CourseProgress",
     "LastActivity",
     "LastActivityPerModule",
+    "ModuleDuration",
     "ModuleFirstActivity",
     "ModuleLastActivity",
 ]
@@ -68,6 +69,22 @@ class CourseDuration(models.Model):
     class Meta:
         managed = False
         db_table = "course_duration_view"
+
+
+class ModuleDuration(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    module = models.ForeignKey(
+        "Module", related_name="module_duration", on_delete=models.DO_NOTHING
+    )
+    eitdigital_user = models.ForeignKey(
+        "EITDigitalUser", related_name="module_duration", on_delete=models.DO_NOTHING
+    )
+    timestamp = models.DateTimeField(db_column="module_start_ts")
+    duration = models.DurationField()
+
+    class Meta:
+        managed = False
+        db_table = "module_duration_view"
 
 
 class LastActivity(models.Model):

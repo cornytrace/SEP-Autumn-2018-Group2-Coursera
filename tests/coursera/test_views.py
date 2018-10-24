@@ -62,19 +62,16 @@ def test_course_analytics_date_filter(
         "enrolled_learners",
         "leaving_learners",
         "finished_learners",
-        "paying_learners",
         "modules",
         "quizzes",
         "assignments",
         "videos",
         "cohorts",
-        # "average_time",
     ]
     list_keys = [
         "ratings",
         "finished_learners_over_time",
         # "leaving_learners_per_module",
-        # "average_time_per_module",
     ]
 
     for key in simple_keys:
@@ -102,30 +99,34 @@ def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_cou
         "enrolled_learners",
         "leaving_learners",
         "finished_learners",
-        # "paying_learners",
         "cohorts",
     ]
     list_keys = [
         "ratings",
         "finished_learners_over_time",
         # "leaving_learners_per_module",
-        # "average_time_per_module",
     ]
 
     for key in simple_keys:
         assert filtered_response.data[key] == 0, key
 
-    # assert filtered_response.data["average_time"] == timedelta(0)
+    assert filtered_response.data["average_time"] == timedelta(0)
 
     for key in list_keys:
         assert len(filtered_response.data[key]) == 0 or all(
             d[1] == 0 for d in filtered_response.data[key]
         )
 
+    assert all(
+        d[1] == timedelta(0) for d in filtered_response.data["average_time_per_module"]
+    )
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("filter_type", ["from_date", "to_date"])
-def test_course_analytics_invalid_date_filter(teacher_api_client, coursera_course_id, filter_type):
+def test_course_analytics_invalid_date_filter(
+    teacher_api_client, coursera_course_id, filter_type
+):
     response = teacher_api_client.get(
         reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
         + f"?{filter_type}=invalid"
@@ -323,7 +324,6 @@ def test_video_analytics_view_invalid_date_filter(
     ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys
-
 
 
 @pytest.mark.django_db
@@ -533,8 +533,57 @@ def test_quiz_analytics_date_filter_in_future(
             d[1] == 0 for d in filtered_response.data[key]
         )
 
+
 @pytest.mark.django_db
-def test_quiz_analytics_next_quiz(teacher_api_client,
+@pytest.mark.parametrize("filter_type", ["from_date", "to_date"])
+def test_quiz_analytics_view_invalid_date_filter(
+    teacher_api_client,
+    coursera_course_id,
+    coursera_assessment_base_id,
+    coursera_assessment_version,
+    filter_type,
+):
+    response = teacher_api_client.get(
+        reverse(
+            "coursera-api:quiz-detail",
+            kwargs={
+                "course_id": coursera_course_id,
+                "base_id": coursera_assessment_base_id,
+                "version": coursera_assessment_version,
+            },
+        )
+        + f"?{filter_type}=invalid"
+    )
+    keys = [
+        "id",
+        "base_id",
+        "version",
+        "name",
+        "type",
+        "update_timestamp",
+        "passing_fraction",
+        "graded",
+        "average_grade",
+        "grade_distribution",
+        "average_attempts",
+        "number_of_attempts",
+        "correct_ratio_per_question",
+        "quiz_comments",
+        "quiz_likes",
+        "quiz_dislikes",
+        "last_attempt_average_grade",
+        "last_attempt_grade_distribution",
+        "next_item",
+        "next_quiz",
+    ]
+    assert response.status_code == 200, str(response.content)
+    assert list(response.data.keys()) == keys
+
+
+
+@pytest.mark.django_db
+def test_quiz_analytics_next_quiz(
+    teacher_api_client,
     coursera_alt_course_id,
 ):
     response = teacher_api_client.get(
@@ -745,7 +794,6 @@ def test_assignment_analytics_view_invalid_date_filter(
     ]
     assert response.status_code == 200, str(response.content)
     assert list(response.data.keys()) == keys
-
 
 
 @pytest.mark.django_db

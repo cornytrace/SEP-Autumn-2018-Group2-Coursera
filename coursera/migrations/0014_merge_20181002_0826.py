@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coursera', '0013_clickstreamevent_lastactivity_lastactivitypermodule'),
-        ('coursera', '0013_create_module_activity_views'),
+        ("coursera", "0013_clickstreamevent_lastactivity_lastactivitypermodule"),
+        ("coursera", "0013_create_module_activity_views"),
     ]
 
-    operations = [
-    ]
+    operations = []

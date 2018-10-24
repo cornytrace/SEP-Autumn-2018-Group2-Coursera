@@ -131,8 +131,10 @@ class CourseQuerySet(models.QuerySet):
         return self.annotate(
             average_time=Coalesce(
                 AvgSubquery(
-                    CourseDuration.objects.filter(course_id=OuterRef("pk")).values(
-                        "duration"
+                    filter(
+                        CourseDuration.objects.filter(course_id=OuterRef("pk")).values(
+                            "duration"
+                        )
                     ),
                     db_column="duration",
                     output_field=models.DurationField(),

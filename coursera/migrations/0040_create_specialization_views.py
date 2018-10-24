@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                     specialization_id,
                     current_dt
                 FROM
-                    specializations_courses_view
+                    specializations_courses
                 """,
                 """
                 CREATE UNIQUE INDEX ON specializations_courses_view (id)
