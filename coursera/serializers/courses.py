@@ -94,7 +94,10 @@ class CourseSerializer(serializers.ModelSerializer):
         """
         Return the number of members for `obj` that have a LEARNER
         or PRE_ENROLLED_LEARNER status, have not finished the course
-        and had their last activity more than 6 weeks ago.
+        and had their last activity more than 6 weeks before to_date,
+        or today if the to_date filter isn't set. If from_date is set,
+        calculate the difference in leaving learners between to_date and
+        from_date.
         """
         form = GenericFilterSet(
             self.context["request"].GET,

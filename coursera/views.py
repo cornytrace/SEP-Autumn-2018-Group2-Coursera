@@ -76,12 +76,17 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        return (
+        queryset = (
             super()
             .get_queryset()
             .filter(branch__course__in=self.request.user.courses)
             .filter(branch__course=self.kwargs["course_id"])
         )
+        if self.action == "list":
+            queryset = queryset.order_by(
+                "lesson__module__order", "lesson__order", "order"
+            )
+        return queryset
 
 
 class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
@@ -114,7 +119,6 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
             .get_queryset()
             .filter(items__branch__course__in=self.request.user.courses)
             .filter(items__branch__course=self.kwargs["course_id"])
-            .order_by("base_id", "version")
             .annotate(name=F("items__name"))
             .annotate(graded=F("items__type__graded"))
         )
@@ -122,7 +126,9 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
             queryset = queryset.with_average_grade(self.generic_filterset)
 
         if "base_id" in self.kwargs:
-            queryset = queryset.filter(base_id=self.kwargs["base_id"])
+            queryset = queryset.filter(base_id=self.kwargs["base_id"]).order_by(
+                "version"
+            )
         else:
             queryset = queryset.filter(
                 version=Subquery(
@@ -130,6 +136,8 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
                     .values("version")
                     .order_by("-version")[:1]
                 )
+            ).order_by(
+                "items__lesson__module__order", "items__lesson__order", "items__order"
             )
         return queryset
 
@@ -166,5 +174,9 @@ class AssignmentAnalyticsViewSet(ReadOnlyModelViewSet):
                 queryset.with_submissions(self.generic_filterset)
                 .with_submission_ratio(self.generic_filterset)
                 .with_average_grade(self.generic_filterset)
+            )
+        if self.action == "list":
+            queryset = queryset.order_by(
+                "lesson__module__order", "lesson__order", "order"
             )
         return queryset
