@@ -361,4 +361,6 @@ class CourseAnalyticsSerializer(CourseSerializer):
             )
 
     def get_cohort_list(self, obj):
-        return list(obj.sessions.values_list("timestamp", "end_timestamp"))
+        return list(
+            obj.sessions.values_list("timestamp", "end_timestamp").order_by("timestamp")
+        )
