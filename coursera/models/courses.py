@@ -8,7 +8,7 @@ from django.utils.timezone import now
 from coursera.utils import AvgSubquery, CountSubquery
 
 from .activities import CourseDuration, CourseProgress
-from .assessments import ItemAssessment
+from .assessments import ItemQuiz
 from .assignments import ItemPeerAssignment, ItemProgrammingAssignment
 from .course_structure import Item, ItemType, Module
 from .feedback import CourseRating
@@ -95,7 +95,7 @@ class CourseQuerySet(models.QuerySet):
     def with_quizzes(self):
         return self.annotate(
             quizzes=CountSubquery(
-                ItemAssessment.objects.filter(branch_id=OuterRef("branches__pk"))
+                ItemQuiz.objects.filter(branch_id=OuterRef("branches__pk"))
             )
         )
 

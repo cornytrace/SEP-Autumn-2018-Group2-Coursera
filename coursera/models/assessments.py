@@ -7,9 +7,9 @@ from coursera.utils import AvgSubquery, CountSubquery
 from .grades import ItemGrade
 
 __all__ = [
-    "Assessment",
+    "Quiz",
     "AnswerCount",
-    "ItemAssessment",
+    "ItemQuiz",
     "Response",
     "Attempt",
     "ResponseOption",
@@ -17,10 +17,10 @@ __all__ = [
 ]
 
 
-class AssessmentQuerySet(models.QuerySet):
+class QuizQuerySet(models.QuerySet):
     def with_average_grade(self, filter):
         subquery = filter(
-            ItemGrade.objects.filter(item__assessments=OuterRef("pk"))
+            ItemGrade.objects.filter(item__quizzes=OuterRef("pk"))
             .annotate(
                 grade=Cast(
                     "overall", models.DecimalField(max_digits=3, decimal_places=2)
@@ -33,7 +33,7 @@ class AssessmentQuerySet(models.QuerySet):
         )
 
 
-class Assessment(models.Model):
+class Quiz(models.Model):
     id = models.CharField(max_length=50, primary_key=True, db_column="assessment_id")
     base_id = models.CharField(max_length=50, db_column="assessment_base_id")
     version = models.IntegerField(db_column="assessment_version")
@@ -41,22 +41,20 @@ class Assessment(models.Model):
     update_timestamp = models.DateTimeField(db_column="assessment_update_ts")
     passing_fraction = models.FloatField(db_column="assessment_passing_fraction")
 
-    items = models.ManyToManyField(
-        "Item", through="ItemAssessment", related_name="assessments"
-    )
+    items = models.ManyToManyField("Item", through="ItemQuiz", related_name="quizzes")
 
-    objects = AssessmentQuerySet.as_manager()
+    objects = QuizQuerySet.as_manager()
 
     class Meta:
         managed = False
         db_table = "assessments_view"
 
 
-class ItemAssessment(models.Model):
+class ItemQuiz(models.Model):
     id = models.CharField(max_length=50, db_column="id", primary_key=True)
     branch = models.ForeignKey(
         "Branch",
-        related_name="item_assessments",
+        related_name="item_quizzes",
         on_delete=models.DO_NOTHING,
         db_column="course_branch_id",
         max_length=50,
@@ -65,16 +63,16 @@ class ItemAssessment(models.Model):
     )
     item = models.ForeignKey(
         "Item",
-        related_name="item_assessments",
+        related_name="item_quizzes",
         on_delete=models.DO_NOTHING,
         db_column="item_id",
         max_length=50,
         blank=True,
         null=True,
     )
-    assessment = models.ForeignKey(
-        "Assessment",
-        related_name="item_assessments",
+    quiz = models.ForeignKey(
+        "Quiz",
+        related_name="item_quizzes",
         on_delete=models.DO_NOTHING,
         db_column="assessment_id",
         max_length=50,
@@ -85,15 +83,15 @@ class ItemAssessment(models.Model):
     class Meta:
         managed = False
         db_table = "course_branch_item_assessments_view"
-        unique_together = ("item", "assessment")
+        unique_together = ("item", "quiz")
 
 
 class Response(models.Model):
     id = models.CharField(
         max_length=50, primary_key=True, db_column="assessment_response_id"
     )
-    assessment = models.ForeignKey(
-        "Assessment",
+    quiz = models.ForeignKey(
+        "Quiz",
         related_name="responses",
         on_delete=models.DO_NOTHING,
         db_column="assessment_id",
@@ -130,8 +128,11 @@ class ResponseOption(models.Model):
 
 class Attempt(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
-    assessment = models.ForeignKey(
-        "Assessment", related_name="attempts", on_delete=models.DO_NOTHING
+    quiz = models.ForeignKey(
+        "Quiz",
+        related_name="attempts",
+        on_delete=models.DO_NOTHING,
+        db_column="assessment_id",
     )
     eitdigital_user = models.ForeignKey(
         "EITDigitalUser", related_name="attempts", on_delete=models.DO_NOTHING
@@ -145,8 +146,11 @@ class Attempt(models.Model):
 
 class LastAttempt(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
-    assessment = models.ForeignKey(
-        "Assessment", related_name="last_attempts", on_delete=models.DO_NOTHING
+    quiz = models.ForeignKey(
+        "Quiz",
+        related_name="last_attempts",
+        on_delete=models.DO_NOTHING,
+        db_column="assessment_id",
     )
     eitdigital_user = models.ForeignKey(
         "EITDigitalUser", related_name="last_attempts", on_delete=models.DO_NOTHING
@@ -161,8 +165,11 @@ class LastAttempt(models.Model):
 
 class AnswerCount(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
-    assessment = models.ForeignKey(
-        "Assessment", related_name="answer_count", on_delete=models.DO_NOTHING
+    quiz = models.ForeignKey(
+        "Quiz",
+        related_name="answer_count",
+        on_delete=models.DO_NOTHING,
+        db_column="assessment_id",
     )
     question_id = models.CharField(db_column="assessment_question_id", max_length=50)
     timestamp = models.DateField(db_column="assessment_action_ts")

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from coursera.filters import GenericFilterSet
-from coursera.models import Assessment, ClickstreamEvent, Course, Item, ItemType
+from coursera.models import ClickstreamEvent, Course, Item, ItemType, Quiz
 from coursera.serializers import (
     AssignmentAnalyticsSerializer,
     CourseAnalyticsSerializer,
@@ -85,7 +85,7 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
 
 
 class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
-    queryset = Assessment.objects.all()
+    queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 
@@ -126,7 +126,7 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
         else:
             queryset = queryset.filter(
                 version=Subquery(
-                    Assessment.objects.filter(base_id=OuterRef("base_id"))
+                    Quiz.objects.filter(base_id=OuterRef("base_id"))
                     .values("version")
                     .order_by("-version")[:1]
                 )
