@@ -25,6 +25,7 @@ from coursera.models import (
     CourseRating,
     EITDigitalUser,
     Grade,
+    LastActivity,
     LastActivityPerModule,
     ModuleDuration,
 )
@@ -128,8 +129,7 @@ class CourseSerializer(serializers.ModelSerializer):
                     .values("eitdigital_user_id")
                 )
                 .difference(
-                    CourseProgress.objects.filter(course_id=obj.pk)
-                    .filter(timestamp__lte=from_date)
+                    LastActivity.objects.filter(course_id=obj.pk)
                     .filter(timestamp__gt=from_date - timedelta(weeks=6))
                     .values("eitdigital_user_id")
                 )
@@ -155,8 +155,7 @@ class CourseSerializer(serializers.ModelSerializer):
                 .values("eitdigital_user_id")
             )
             .difference(
-                CourseProgress.objects.filter(course_id=obj.pk)
-                .filter(timestamp__lte=to_date)
+                LastActivity.objects.filter(course_id=obj.pk)
                 .filter(timestamp__gt=to_date - timedelta(weeks=6))
                 .values("eitdigital_user_id")
             )
