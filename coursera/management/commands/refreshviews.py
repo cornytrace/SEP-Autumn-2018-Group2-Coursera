@@ -85,10 +85,10 @@ class Command(BaseCommand):
                     self.stdout.write("Refreshed view in %.2f seconds" % (_t1 - _t0))
             self.stdout.write("Updating database statistics...")
             _t0 = time()
-            # ANALYZE updates PostgreSQL's internal statistics about the database.
+            # VACUUM ANALYZE updates PostgreSQL's internal statistics about the database.
             # It also updates the visibility map, allowing for index-only
             # scans in many cases.
-            cursor.execute(sql.SQL("ANALYZE"))
+            cursor.execute(sql.SQL("VACUUM ANALYZE"))
             _t1 = time()
             self.stdout.write(
                 "Updated database statistics in %.2f seconds" % (_t1 - _t0)
