@@ -2,6 +2,8 @@ from time import time
 
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
+from psycopg2 import sql
+from psycopg2.extensions import quote_ident
 
 RECURSIVE_VIEWS_QUERY = """
 WITH RECURSIVE matview_dependencies AS (
@@ -37,6 +39,12 @@ class Command(BaseCommand):
     help = "Refresh all materialized views."
 
     def handle(self, *args, **kwargs):
+        """
+        Query the database for all materialized views, sorted topologically
+        based on the dependencies between views. Refreshes each view in order,
+        then performs a VACUUM ANALYZE to update the database statistics.
+        """
+
         with connection.cursor() as cursor:
             with transaction.atomic():
                 cursor.execute(RECURSIVE_VIEWS_QUERY)
@@ -45,13 +53,19 @@ class Command(BaseCommand):
                     self.stdout.write("Refreshing materialized view '%s'..." % view)
                     _t0 = time()
                     cursor.execute(
-                        """REFRESH MATERIALIZED VIEW CONCURRENTLY "%s" """ % view
+                        sql.SQL("REFRESH MATERIALIZED VIEW CONCURRENTLY {}").format(
+                            sql.Identifier(view)
+                        )
                     )
                     _t1 = time()
                     self.stdout.write("Refreshed view in %.2f seconds" % (_t1 - _t0))
             self.stdout.write("Updating database statistics...")
             _t0 = time()
-            cursor.execute("VACUUM ANALYZE")
+            # VACUUM ANALYZE reclaims disk space from the heap and updates
+            # PostgreSQL's internal statistics about the database.
+            # It also updates the visibility map, allowing for index-only
+            # scans in many cases.
+            cursor.execute(sql.SQL("VACUUM ANALYZE"))
             _t1 = time()
             self.stdout.write(
                 "Updated database statistics in %.2f seconds" % (_t1 - _t0)
