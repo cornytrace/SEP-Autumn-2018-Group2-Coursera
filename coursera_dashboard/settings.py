@@ -117,3 +117,15 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 AUTHORIZATION_SERVER_URL = os.environ["AUTHORIZATION_SERVER_URL"]
 AUTHORIZATION_SERVER_ACCESS_TOKEN = os.environ["AUTHORIZATION_SERVER_ACCESS_TOKEN"]
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+        }
+    },
+}
