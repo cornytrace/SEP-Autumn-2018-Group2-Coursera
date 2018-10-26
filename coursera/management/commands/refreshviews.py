@@ -37,8 +37,8 @@ class Command(BaseCommand):
     help = "Refresh all materialized views."
 
     def handle(self, *args, **kwargs):
-        with transaction.atomic():
-            with connection.cursor() as cursor:
+        with connection.cursor() as cursor:
+            with transaction.atomic():
                 cursor.execute(RECURSIVE_VIEWS_QUERY)
 
                 for (view,) in cursor.fetchall():
@@ -49,3 +49,10 @@ class Command(BaseCommand):
                     )
                     _t1 = time()
                     self.stdout.write("Refreshed view in %.2f seconds" % (_t1 - _t0))
+            self.stdout.write("Updating database statistics...")
+            _t0 = time()
+            cursor.execute("VACUUM ANALYZE")
+            _t1 = time()
+            self.stdout.write(
+                "Updated database statistics in %.2f seconds" % (_t1 - _t0)
+            )
