@@ -61,12 +61,31 @@ class Command(BaseCommand):
                     self.stdout.write("Refreshed view in %.2f seconds" % (_t1 - _t0))
             self.stdout.write("Updating database statistics...")
             _t0 = time()
-            # VACUUM FULL ANALYZE reclaims disk space from the heap and updates
+            # VACUUM ANALYZE reclaims disk space from the heap and updates
             # PostgreSQL's internal statistics about the database.
             # It also updates the visibility map, allowing for index-only
             # scans in many cases.
-            cursor.execute(sql.SQL("VACUUM FULL ANALYZE"))
+            cursor.execute(sql.SQL("VACUUM ANALYZE"))
             _t1 = time()
             self.stdout.write(
                 "Updated database statistics in %.2f seconds" % (_t1 - _t0)
             )
+
+            cursor.execute(
+                sql.SQL(
+                    """
+                    SELECT relname as "relation"
+                    FROM pg_class LEFT JOIN pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
+                    WHERE nspname = 'public' AND relkind = 'r'
+                    """
+                )
+            )
+
+            for (relation,) in cursor.fetchall():
+                self.stdout.write("Cleaning table '%s'" % relation)
+                _t0 = time()
+                cursor.execute(
+                    sql.SQL("VACUUM FULL {}").format(sql.Identifier(relation))
+                )
+                _t1 = time()
+                self.stdout.write("Finished cleaning in %.2f seconds" % (_t1 - _t0))
