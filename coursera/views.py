@@ -8,16 +8,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from coursera.filters import GenericFilterSet
-from coursera.models import ClickstreamEvent, Course, Item, ItemType, Quiz
-from coursera.serializers import (
-    AssignmentAnalyticsSerializer,
-    CourseAnalyticsSerializer,
-    CourseSerializer,
-    ItemSerializer,
-    QuizAnalyticsSerializer,
-    QuizSerializer,
-    VideoAnalyticsSerializer,
-)
+from coursera.models import (Branch, ClickstreamEvent, Course, Item, ItemType,
+                             Quiz)
+from coursera.serializers import (AssignmentAnalyticsSerializer,
+                                  CourseAnalyticsSerializer, CourseSerializer,
+                                  ItemSerializer, QuizAnalyticsSerializer,
+                                  QuizSerializer, VideoAnalyticsSerializer)
 
 
 class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
@@ -63,7 +59,13 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
 
 
 class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
-    queryset = Item.objects.filter(type__description=ItemType.LECTURE)
+    queryset = Item.objects.filter(type__description=ItemType.LECTURE).filter(
+        branch=Subquery(
+            Branch.objects.filter(pk=OuterRef("branch_id"))
+            .order_by(F("authoring_course_branch_created_ts").desc(nulls_last=True))
+            .values("pk")[:1]
+        )
+    )
     serializer_class = ItemSerializer
     permission_classes = [IsAuthenticated]
 
@@ -90,7 +92,13 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
 
 
 class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
-    queryset = Quiz.objects.all()
+    queryset = Quiz.objects.filter(
+        items__branch=Subquery(
+            Branch.objects.filter(pk=OuterRef("items__branch_id"))
+            .order_by(F("authoring_course_branch_created_ts").desc(nulls_last=True))
+            .values("pk")[:1]
+        )
+    )
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 
@@ -143,7 +151,13 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
 
 
 class AssignmentAnalyticsViewSet(ReadOnlyModelViewSet):
-    queryset = Item.peer_assignment_objects.all()
+    queryset = Item.peer_assignment_objects.filter(
+        branch=Subquery(
+            Branch.objects.filter(pk=OuterRef("branch_id"))
+            .order_by(F("authoring_course_branch_created_ts").desc(nulls_last=True))
+            .values("pk")[:1]
+        )
+    )
     serializer_class = ItemSerializer
     permission_classes = [IsAuthenticated]
 
