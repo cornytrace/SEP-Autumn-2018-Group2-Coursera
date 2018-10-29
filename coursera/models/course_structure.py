@@ -7,6 +7,7 @@ from coursera.utils import AvgSubquery, CountSubquery, NullIf
 from .activities import CourseProgress
 from .assignments import PeerAssignment, PeerSubmission
 from .grades import ItemGrade
+from .users import CourseMembership
 
 __all__ = ["Module", "Lesson", "Item", "ItemType", "Country2To3"]
 
@@ -101,7 +102,9 @@ class PeerAssignmentQuerySet(models.QuerySet):
                 / NullIf(
                     CountSubquery(
                         filter(
-                            CourseProgress.objects.filter(item_id=OuterRef("pk"))
+                            CourseMembership.objects.filter(
+                                course_id=OuterRef("branch__course_id")
+                            )
                             .values_list("eitdigital_user_id")
                             .distinct()
                         )
