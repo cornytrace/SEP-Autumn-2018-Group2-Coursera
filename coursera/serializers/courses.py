@@ -11,7 +11,7 @@ from django.db.models import (
     Subquery,
     Window,
 )
-from django.db.models.functions import Coalesce, TruncMonth
+from django.db.models.functions import Coalesce, TruncDate
 from django.utils.functional import cached_property
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -249,7 +249,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
         except AttributeError:
             return list(
                 Grade.objects.filter(course_id=obj.pk)
-                .annotate(month=TruncMonth("timestamp", output_field=DateField()))
+                .annotate(month=TruncDate("timestamp", output_field=DateField()))
                 .annotate(
                     num_finished=Window(
                         Count(
@@ -258,10 +258,10 @@ class CourseAnalyticsSerializer(CourseSerializer):
                                 passing_state__in=[Grade.PASSED, Grade.VERIFIED_PASSED]
                             ),
                         ),
-                        order_by=TruncMonth("timestamp").asc(),
+                        order_by=TruncDate("timestamp").asc(),
                     )
                 )
-                .order_by(TruncMonth("timestamp").asc())
+                .order_by(TruncDate("timestamp").asc())
                 .values_list("month", "num_finished")
                 .distinct()
             )
