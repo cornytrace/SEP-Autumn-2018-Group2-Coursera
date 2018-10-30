@@ -14,6 +14,7 @@ import dotenv
 from django.core.wsgi import get_wsgi_application
 
 with warnings.catch_warnings():
+    # django-dotenv raises a warning if the .env file doesn't exist.
     warnings.simplefilter("ignore")
     dotenv.read_dotenv(
         os.path.join(

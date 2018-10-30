@@ -71,7 +71,16 @@ class CourseSerializer(serializers.ModelSerializer):
 
     @cached_property
     def filter(self):
+        """
+        Return a partial that applies the GenericFilterSet to the passed queryset. 
+
+        Requires the request object to be in the context.
+        """
+
         def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            """
+            Apply the GenericFilterSet to the queryset, and return the filtered queryset.
+            """
             return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
 
         return partial(
@@ -241,7 +250,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
 
     def get_finished_learners_over_time(self, obj):
         """
-        For each month, show the cumulative number of students that has passed
+        For each date, show the cumulative number of students that has passed
         the course `obj`.
         """
         try:
@@ -249,7 +258,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
         except AttributeError:
             return list(
                 Grade.objects.filter(course_id=obj.pk)
-                .annotate(month=TruncDate("timestamp", output_field=DateField()))
+                .annotate(date=TruncDate("timestamp", output_field=DateField()))
                 .annotate(
                     num_finished=Window(
                         Count(
@@ -262,7 +271,7 @@ class CourseAnalyticsSerializer(CourseSerializer):
                     )
                 )
                 .order_by(TruncDate("timestamp").asc())
-                .values_list("month", "num_finished")
+                .values_list("date", "num_finished")
                 .distinct()
             )
 
@@ -308,6 +317,10 @@ class CourseAnalyticsSerializer(CourseSerializer):
         )
 
     def get_average_time(self, obj):
+        """
+        Return the average duration between each learners first and last activity
+        in the course.
+        """
         return obj.average_time
 
     def get_average_time_per_module(self, obj):
@@ -363,6 +376,9 @@ class CourseAnalyticsSerializer(CourseSerializer):
             )
 
     def get_cohort_list(self, obj):
+        """
+        Return the list of cohorts in this course.
+        """
         return list(
             obj.sessions.values_list("timestamp", "end_timestamp").order_by("timestamp")
         )

@@ -48,18 +48,31 @@ class QuizAnalyticsSerializer(QuizSerializer):
 
     Calculates the following statistics:
 
-    average_grade: The average grade of all students who completed the quiz.
-    grade_distribution: The distribution of grades of all students who completed the quiz.
-    average_attempts: The average number of attempts per student.
-    number_of_attempts: The distribution of number of attempts per student.
-    correct_ratio_per_question: The ratio between correct responses and submitted responses per question.
-    quiz_comments: The number of comments on the quiz.
-    quiz_likes: The number of likes on the quiz.
-    quiz_dislikes: The number of dislikes on the quiz.
-    last_attempt_average_grade: The average grade of students' last attempt on the quiz.
-    last_attempt_grade_distribution: The distribution of grades of students' last attempt on the quiz.
-    next_item: The next item in the lesson.
-    next_quiz: The next item of type Quiz in the lesson.
+    average_grade:
+        The average grade of all students who completed the quiz.
+    grade_distribution:
+        The distribution of grades of all students who completed the quiz.
+    average_attempts:
+        The average number of attempts per student.
+    number_of_attempts:
+        The distribution of number of attempts per student.
+    correct_ratio_per_question:
+        The ratio between correct responses and submitted responses per
+        question.
+    quiz_comments:
+        The number of comments on the quiz.
+    quiz_likes:
+        The number of likes on the quiz.
+    quiz_dislikes:
+        The number of dislikes on the quiz.
+    last_attempt_average_grade:
+        The average grade of students' last attempt on the quiz.
+    last_attempt_grade_distribution: 
+        The distribution of grades of students' last attempt on the quiz.
+    next_item:
+        The next item in the lesson.
+    next_quiz:
+        The next item of type Quiz in the lesson.
     """
 
     class Meta(QuizSerializer.Meta):
@@ -93,7 +106,18 @@ class QuizAnalyticsSerializer(QuizSerializer):
 
     @cached_property
     def filter(self):
+        """
+        Return a partial that applies the GenericFilterSet to the passed
+        queryset.
+
+        Requires the request object to be in the context.
+        """
+
         def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            """
+            Apply the GenericFilterSet to the queryset, and return the filtered
+            queryset.
+            """
             return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
 
         return partial(
@@ -101,6 +125,10 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_grade_distribution(self, obj):
+        """
+        Return the distribution of grades for this quiz within the given
+        timespan.
+        """
         return list(
             self.filter(
                 ItemGrade.objects.filter(
@@ -116,6 +144,10 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_average_attempts(self, obj):
+        """
+        Return the average number of attempts for this quiz within the given
+        timespan.
+        """
         return (
             self.filter(Attempt.objects.filter(quiz=obj))
             .values("eitdigital_user_id")
@@ -126,8 +158,8 @@ class QuizAnalyticsSerializer(QuizSerializer):
     def get_number_of_attempts(self, obj):
         """
         Return the number of users that have used a specific number of attempts
-        on the quiz. Every day on which a user submitted at least one response
-        is counted as an attempt.
+        on the quiz within the given timespan. Every day on which a user
+        submitted at least one response is counted as an attempt.
         """
         return list(
             self.filter(Attempt.objects.filter(quiz=obj))
@@ -148,6 +180,10 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_correct_ratio_per_question(self, obj):
+        """
+        Return the ratio between the number of correct answers and the total
+        number of answers for each question within the given timespan.
+        """
         queryset = self.filter(
             obj.answer_count.values_list("question_id").order_by("question_id")
         )
@@ -172,6 +208,9 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_quiz_comments(self, obj):
+        """
+        Return the number of comments on this quiz within the given timespan.
+        """
         return self.filter(
             DiscussionQuestion.objects.filter(
                 item__quizzes=obj, course_id=self.context["course_id"]
@@ -179,6 +218,9 @@ class QuizAnalyticsSerializer(QuizSerializer):
         ).aggregate(quiz_comments=Coalesce(Count("pk"), 0))["quiz_comments"]
 
     def get_quiz_likes(self, obj):
+        """
+        Return the number of likes on this quiz within the given timespan.
+        """
         return self.filter(
             ItemRating.objects.filter(
                 item__quizzes=obj,
@@ -190,6 +232,9 @@ class QuizAnalyticsSerializer(QuizSerializer):
         ]
 
     def get_quiz_dislikes(self, obj):
+        """
+        Return the number of dislikes on this quiz within the given timespan.
+        """
         return self.filter(
             ItemRating.objects.filter(
                 item__quizzes=obj,
@@ -202,12 +247,13 @@ class QuizAnalyticsSerializer(QuizSerializer):
 
     def get_last_attempt_average_grade(self, obj):
         """
-        Return the average grade of the last attempts for a quiz.
+        Return the average grade of the last attempts for a quiz within the
+        given timespan.
 
-        A last attempt is the last submission for each question at a specific order
-        in the quiz. If the question at a specific order is replaced, and the user
-        submits a response to the new question, the response for the new question
-        is counted.
+        A last attempt is the last submission for each question at a specific
+        order in the quiz. If the question at a specific order is replaced,
+        and the user submits a response to the new question, the response for
+        the new question is counted.
         """
         return self.filter(
             obj.last_attempts.annotate(
@@ -216,6 +262,10 @@ class QuizAnalyticsSerializer(QuizSerializer):
         ).aggregate(average_grade=Coalesce(Avg("grade"), 0))["average_grade"]
 
     def get_last_attempt_grade_distribution(self, obj):
+        """
+        Return the grade distribution of the last attempts for a quiz within
+        the given timespan.
+        """
         return list(
             self.filter(
                 obj.last_attempts.annotate(
@@ -225,6 +275,9 @@ class QuizAnalyticsSerializer(QuizSerializer):
         )
 
     def get_next_item(self, obj):
+        """
+        Return the next item in the lesson, if any.
+        """
         try:
             return obj.next_item_id
         except AttributeError:
@@ -243,6 +296,9 @@ class QuizAnalyticsSerializer(QuizSerializer):
                 return {"item_id": "", "type": 0, "category": ""}
 
     def get_next_quiz(self, obj):
+        """
+        Return the next quiz in the lesson, if any.
+        """
         try:
             return obj.next_video_id
         except AttributeError:

@@ -13,6 +13,36 @@ from coursera.serializers import CourseAnalyticsSerializer
 def test_course_analytics_view(
     teacher_api_client, coursera_course_id, django_assert_max_num_queries
 ):
+    """
+    Test that the course detail view can be accessed and returns the
+    appropriate data and analytics.
+
+    The following data must be present:
+    - id
+    - slug
+    - name
+    - specialization
+    - level
+    - enrolled_learners
+    - leaving_learners
+    - ratings
+    - finished_learners
+    - paying_learners
+    - modules
+    - quizzes
+    - assignments
+    - videos
+    - cohorts
+    - finished_learners_over_time
+    - leaving_learners_per_module
+    - average_time
+    - average_time_per_module
+    - geo_data
+    - cohort_list
+
+    Also asserts that the number of database queries does not exceed the
+    predetermined number of queries required for this endpoint.
+    """
     with django_assert_max_num_queries(10) as captured:
         response = teacher_api_client.get(
             reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
@@ -50,6 +80,11 @@ def test_course_analytics_view(
 def test_course_analytics_date_filter(
     teacher_api_client, coursera_course_id, filter_type
 ):
+    """
+    For any analytic that counts the number of occurances within a timespan,
+    test that the number of occurances in a limited timespan is always less
+    or equal to the number of occurances in an unlimited timespan.
+    """
     filtered_response = teacher_api_client.get(
         reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
         + f"?{filter_type}=2018-09-20"
@@ -83,6 +118,10 @@ def test_course_analytics_date_filter(
 
 @pytest.mark.django_db
 def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_course_id):
+    """
+    Assert that when a timespan filter is applied that only covers the future,
+    all analytics that are affected by the filter are equal to zero. 
+    """
     filtered_response = teacher_api_client.get(
         reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
         + "?from_date="
@@ -120,6 +159,10 @@ def test_course_analytics_date_filter_in_future(teacher_api_client, coursera_cou
 def test_course_analytics_invalid_date_filter(
     teacher_api_client, coursera_course_id, filter_type
 ):
+    """
+    Test that a request with an invalid date filter still returns a valid
+    response.
+    """
     response = teacher_api_client.get(
         reverse("coursera-api:course-detail", kwargs={"pk": coursera_course_id})
         + f"?{filter_type}=invalid"
@@ -153,6 +196,10 @@ def test_course_analytics_invalid_date_filter(
 
 @pytest.mark.django_db
 def test_course_analytics_no_permissions(teacher_api_client):
+    """
+    Test that a user cannot access any courses that the user has not been 
+    given access to by an administrator.
+    """
     response = teacher_api_client.get(
         reverse("coursera-api:course-detail", kwargs={"pk": "bmHtyVrIEee3CwoIJ_9DVg"})
     )
@@ -162,6 +209,22 @@ def test_course_analytics_no_permissions(teacher_api_client):
 
 @pytest.mark.django_db
 def test_course_list_view(teacher_api_client):
+    """
+    Test that the course list view returns a non-empty list of courses with a
+    limited number of analytics.
+
+    The following data must be present:
+    - id
+    - slug
+    - name
+    - specialization
+    - level
+    - enrolled_learners
+    - leaving_learners
+    - ratings
+    - finished_learners
+    - paying_learners
+    """
     response = teacher_api_client.get(reverse("coursera-api:course-list"))
     keys = [
         "id",
@@ -185,6 +248,28 @@ def test_course_list_view(teacher_api_client):
 def test_video_analytics_view(
     teacher_api_client, coursera_course_id, coursera_video_id
 ):
+    """
+    Test that the video detail view can be accessed and returns the
+    appropriate data and analytics.
+
+    The following data must be present:
+    - id
+    - branch
+    - item_id
+    - lesson
+    - order
+    - type
+    - name
+    - optional
+    - watched_video
+    - finished_video
+    - video_comments
+    - video_likes
+    - video_dislikes
+    - next_item
+    - next_video
+    - views_over_runtime
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:video-detail",
@@ -218,6 +303,11 @@ def test_video_analytics_view(
 def test_video_analytics_date_filter(
     teacher_api_client, coursera_course_id, coursera_video_id, filter_type
 ):
+    """
+    For any analytic that counts the number of occurances within a timespan,
+    test that the number of occurances in a limited timespan is always less
+    or equal to the number of occurances in an unlimited timespan.
+    """
     filtered_response = teacher_api_client.get(
         reverse(
             "coursera-api:video-detail",
@@ -258,6 +348,10 @@ def test_video_analytics_date_filter(
 def test_video_analytics_date_filter_in_future(
     teacher_api_client, coursera_course_id, coursera_video_id
 ):
+    """
+    Assert that when a timespan filter is applied that only covers the future,
+    all analytics that are affected by the filter are equal to zero. 
+    """
     filtered_response = teacher_api_client.get(
         reverse(
             "coursera-api:video-detail",
@@ -290,6 +384,10 @@ def test_video_analytics_date_filter_in_future(
 def test_video_analytics_view_invalid_date_filter(
     teacher_api_client, coursera_course_id, coursera_video_id, filter_type
 ):
+    """
+    Test that a request with an invalid date filter still returns a valid
+    response.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:video-detail",
@@ -321,6 +419,10 @@ def test_video_analytics_view_invalid_date_filter(
 
 @pytest.mark.django_db
 def test_video_analytics_no_permissions(teacher_api_client, coursera_video_id):
+    """
+    Test that a user cannot access any videos that the user has not been 
+    given access to by an administrator.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:video-detail",
@@ -340,6 +442,10 @@ def test_video_analytics_no_permissions(teacher_api_client, coursera_video_id):
 def test_video_analytics_view_no_next_item(
     teacher_api_client, coursera_course_id, coursera_video_id
 ):
+    """
+    Test that "next_item" returns an empty item id when the lesson does not
+    contain a next item.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:video-detail",
@@ -359,6 +465,10 @@ def test_video_analytics_view_no_next_item(
 def test_video_analytics_view_next_item(
     teacher_api_client, coursera_alt_course_id, coursera_video_id
 ):
+    """
+    Test that "next_item" returns the correct item id and type when the lesson
+    contains a next item.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:video-detail",
@@ -374,6 +484,11 @@ def test_video_analytics_view_next_item(
 def test_video_analytics_view_next_item_quiz(
     teacher_api_client, coursera_course_id, coursera_video_id
 ):
+    """
+    Test that "next_item" returns the correct item id, type and passing
+    fraction when the lesson contains a next item of type quiz.
+    """
+    
     response = teacher_api_client.get(
         reverse(
             "coursera-api:video-detail",
@@ -393,6 +508,20 @@ def test_video_analytics_view_next_item_quiz(
 
 @pytest.mark.django_db
 def test_video_list_view(teacher_api_client, coursera_course_id):
+    """
+    Test that the video list view returns a non-empty list of videos with the
+    required data.
+
+    The following data must be present:
+    - id
+    - branch
+    - item_id
+    - lesson
+    - order
+    - type
+    - name
+    - optional
+    """
     response = teacher_api_client.get(
         reverse("coursera-api:video-list", kwargs={"course_id": coursera_course_id})
     )
@@ -410,6 +539,32 @@ def test_quiz_analytics_view(
     coursera_assessment_base_id,
     coursera_assessment_version,
 ):
+    """
+    Test that the quiz detail view can be accessed and returns the
+    appropriate data and analytics.
+
+    The following data must be present:
+    - id
+    - base_id
+    - version
+    - name
+    - type
+    - update_timestamp
+    - passing_fraction
+    - graded
+    - average_grade
+    - grade_distribution
+    - average_attempts
+    - number_of_attempts
+    - correct_ratio_per_question
+    - quiz_comments
+    - quiz_likes
+    - quiz_dislikes
+    - last_attempt_average_grade
+    - last_attempt_grade_distribution
+    - next_item
+    - next_quiz
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-detail",
@@ -455,6 +610,11 @@ def test_quiz_analytics_date_filter(
     coursera_assessment_version,
     filter_type,
 ):
+    """
+    For any analytic that counts the number of occurances within a timespan,
+    test that the number of occurances in a limited timespan is always less
+    or equal to the number of occurances in an unlimited timespan.
+    """
     filtered_response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-detail",
@@ -490,6 +650,10 @@ def test_quiz_analytics_date_filter_in_future(
     coursera_assessment_base_id,
     coursera_assessment_version,
 ):
+    """
+    Assert that when a timespan filter is applied that only covers the future,
+    all analytics that are affected by the filter are equal to zero. 
+    """
     filtered_response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-detail",
@@ -536,6 +700,10 @@ def test_quiz_analytics_view_invalid_date_filter(
     coursera_assessment_version,
     filter_type,
 ):
+    """
+    Test that a request with an invalid date filter still returns a valid
+    response.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-detail",
@@ -579,6 +747,10 @@ def test_quiz_analytics_next_quiz(
     teacher_api_client,
     coursera_alt_course_id,
 ):
+    """
+    Test that the quiz detail view returns a correct response when there is a
+    next quiz.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-detail",
@@ -618,6 +790,10 @@ def test_quiz_analytics_next_quiz(
 def test_quiz_analytics_no_permissions(
     teacher_api_client, coursera_assessment_base_id, coursera_assessment_version
 ):
+    """
+    Test that a user cannot access any quizzes that the user has not been 
+    given access to by an administrator.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-detail",
@@ -638,6 +814,20 @@ def test_quiz_analytics_no_permissions(
 def test_quiz_version_list_view(
     teacher_api_client, coursera_course_id, coursera_assessment_base_id
 ):
+    """
+    Test that the quiz version list view can be accessed and returns a
+    non-empty list of quizzes with the appropriate data.
+
+    The following data must be present:
+    - id
+    - base_id
+    - version
+    - name
+    - type
+    - update_timestamp
+    - passing_fraction
+    - graded
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:quiz-list",
@@ -665,6 +855,21 @@ def test_quiz_version_list_view(
 
 @pytest.mark.django_db
 def test_quiz_list_view(teacher_api_client, coursera_course_id):
+    """
+    Test that the quiz list view can be accessed and returns a
+    non-empty list of quizzes with the appropriate data. Test that for every
+    quiz, only a single version appears in the response.
+
+    The following data must be present:
+    - id
+    - base_id
+    - version
+    - name
+    - type
+    - update_timestamp
+    - passing_fraction
+    - graded
+    """
     response = teacher_api_client.get(
         reverse("coursera-api:quiz-list", kwargs={"course_id": coursera_course_id})
     )
@@ -691,6 +896,25 @@ def test_quiz_list_view(teacher_api_client, coursera_course_id):
 def test_assignment_analytics_view(
     teacher_api_client, coursera_course_id, coursera_assignment_id
 ):
+    """
+    Test that the assignment detail view can be accessed and returns the
+    appropriate data and analytics.
+
+    The following data must be present:
+    - id
+    - branch
+    - item_id
+    - lesson
+    - order
+    - type
+    - name
+    - optional
+    - submissions
+    - submission_ratio
+    - average_grade
+    - next_item
+    - next_assignment
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:assignment-detail",
@@ -705,6 +929,10 @@ def test_assignment_analytics_view(
 def test_assignment_analytics_view_next_assignment(
     teacher_api_client, coursera_course_id, coursera_assignment_id
 ):
+    """
+    Test that the assignment detail view returns a valid response
+    when the lesson contains a next assignment.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:assignment-detail",
@@ -721,6 +949,11 @@ def test_assignment_analytics_view_next_assignment(
 def test_assignment_analytics_date_filter(
     teacher_api_client, coursera_course_id, coursera_assignment_id, filter_type
 ):
+    """
+    For any analytic that counts the number of occurances within a timespan,
+    test that the number of occurances in a limited timespan is always less
+    or equal to the number of occurances in an unlimited timespan.
+    """
     filtered_response = teacher_api_client.get(
         reverse(
             "coursera-api:assignment-detail",
@@ -743,6 +976,10 @@ def test_assignment_analytics_date_filter(
 def test_assignment_analytics_date_filter_in_future(
     teacher_api_client, coursera_course_id, coursera_assignment_id
 ):
+    """
+    Assert that when a timespan filter is applied that only covers the future,
+    all analytics that are affected by the filter are equal to zero. 
+    """
     filtered_response = teacher_api_client.get(
         reverse(
             "coursera-api:assignment-detail",
@@ -763,6 +1000,10 @@ def test_assignment_analytics_date_filter_in_future(
 def test_assignment_analytics_view_invalid_date_filter(
     teacher_api_client, coursera_course_id, coursera_assignment_id, filter_type
 ):
+    """
+    Test that a request with an invalid date filter still returns a valid
+    response.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:assignment-detail",
@@ -793,6 +1034,10 @@ def test_assignment_analytics_view_invalid_date_filter(
 def test_assignment_analytics_no_permissions(
     teacher_api_client, coursera_assignment_id
 ):
+    """
+    Test that a user cannot access any assignments that the user has not been 
+    given access to by an administrator.
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:assignment-detail",
@@ -810,6 +1055,20 @@ def test_assignment_analytics_no_permissions(
 
 @pytest.mark.django_db
 def test_assignment_list_view(teacher_api_client, coursera_course_id):
+    """
+    Test that the assignment list view can be accessed and returns a non-empty
+    list of assignments with the appropriate data.
+
+    The following data must be present:
+    - id
+    - branch
+    - item_id
+    - lesson
+    - order
+    - type
+    - name
+    - optional
+    """
     response = teacher_api_client.get(
         reverse(
             "coursera-api:assignment-list", kwargs={"course_id": coursera_course_id}

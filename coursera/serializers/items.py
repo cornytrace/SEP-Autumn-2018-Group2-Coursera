@@ -47,14 +47,22 @@ class VideoAnalyticsSerializer(ItemSerializer):
 
     Calculates the following analytics:
     
-    watched_video: Number of people who started watching the video.
-    finished_video: Number of people who finished watching the video.
-    video_comments: Number of comments on the video.
-    video_likes: Number of likes on the video.
-    video_dislikes: Number of dislikes on the video.
-    next_item: Next item in the lesson.
-    next_video: Next item of type Video in the lesson.
-    views_over_runtime: Number of views per 5-second interval in the video.
+    watched_video: 
+        Number of people who started watching the video.
+    finished_video: 
+        Number of people who finished watching the video.
+    video_comments: 
+        Number of comments on the video.
+    video_likes: 
+        Number of likes on the video.
+    video_dislikes: 
+        Number of dislikes on the video.
+    next_item: 
+        Next item in the lesson.
+    next_video: 
+        Next item of type Video in the lesson.
+    views_over_runtime 
+        Number of views per 5-second interval in the video.
     """
 
     class Meta(ItemSerializer.Meta):
@@ -80,7 +88,18 @@ class VideoAnalyticsSerializer(ItemSerializer):
 
     @cached_property
     def filter(self):
+        """
+        Return a partial that applies the GenericFilterSet to the passed
+        queryset. 
+
+        Requires the request object to be in the context.
+        """
+
         def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            """
+            Apply the GenericFilterSet to the queryset, and return the
+            filtered queryset.
+            """
             return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
 
         return partial(
@@ -89,7 +108,18 @@ class VideoAnalyticsSerializer(ItemSerializer):
 
     @cached_property
     def clickstream_filter(self):
+        """
+        Return a partial that applies the GenericFilterSet to the passed
+        queryset. 
+
+        Requires the request object to be in the context.
+        """
+
         def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            """
+            Apply the ClickstreamEventFilterSet to the queryset, and return
+            the filtered queryset.
+            """
             return ClickstreamEventFilterSet(
                 data, queryset, request=request, prefix=prefix
             ).qs
@@ -99,6 +129,10 @@ class VideoAnalyticsSerializer(ItemSerializer):
         )
 
     def get_watched_video(self, obj):
+        """
+        Return the number of unique learners that have started watching the
+        video within the given timespan.
+        """
         try:
             return obj.watched_video
         except AttributeError:
@@ -115,6 +149,10 @@ class VideoAnalyticsSerializer(ItemSerializer):
             ]
 
     def get_finished_video(self, obj):
+        """
+        Return the number of unique learners that have completed watching the
+        video within the given timespan.
+        """
         try:
             return obj.finished_video
         except AttributeError:
@@ -131,6 +169,9 @@ class VideoAnalyticsSerializer(ItemSerializer):
             ]
 
     def get_video_comments(self, obj):
+        """
+        Return the number of comments on this video within the given timespan.
+        """
         try:
             return obj.video_comments
         except AttributeError:
@@ -139,6 +180,9 @@ class VideoAnalyticsSerializer(ItemSerializer):
             )["video_comments"]
 
     def get_video_likes(self, obj):
+        """
+        Return the number of likes on this video within the given timespan.
+        """
         try:
             return obj.video_likes
         except AttributeError:
@@ -149,6 +193,9 @@ class VideoAnalyticsSerializer(ItemSerializer):
             ]
 
     def get_video_dislikes(self, obj):
+        """
+        Return the number of dislikes on this video within the given timespan.
+        """
         try:
             return obj.video_dislikes
         except AttributeError:
@@ -159,6 +206,12 @@ class VideoAnalyticsSerializer(ItemSerializer):
             ]
 
     def get_next_item(self, obj):
+        """
+        Return the next item in the lesson, if any.
+
+        If the next item is a quiz, also include the passing rate of learners
+        who have watched the video.
+        """
         try:
             return obj.next_item_id
         except AttributeError:
@@ -204,6 +257,9 @@ class VideoAnalyticsSerializer(ItemSerializer):
                 return {"item_id": "", "type": 0, "category": ""}
 
     def get_next_video(self, obj):
+        """
+        Return the next video in the lesson, if any.
+        """
         try:
             return obj.next_video_id
         except AttributeError:
@@ -223,6 +279,10 @@ class VideoAnalyticsSerializer(ItemSerializer):
                 return {"item_id": "", "type": 0, "category": ""}
 
     def get_views_over_runtime(self, obj):
+        """
+        Return the number of views for each 5-second interval in the video,
+        within the given timespan.
+        """
         try:
             return obj.views_over_runtime
         except AttributeError:
@@ -242,11 +302,16 @@ class AssignmentAnalyticsSerializer(ItemSerializer):
 
     Calculates the following analytics:
 
-    submissions: Number of submissions to the assignment.
-    submission_ratio: Number of submissions divided by the number of enrolled students.
-    average_grade: The average grade of all students who completed the assignment.
-    next_item: The next item in the lesson.
-    next_assignment: The next item of type Assignment in the lesson.
+    submissions:
+        Number of submissions to the assignment.
+    submission_ratio:
+        Number of submissions divided by the number of enrolled students.
+    average_grade:
+        The average grade of all students who completed the assignment.
+    next_item:
+        The next item in the lesson.
+    next_assignment:
+        The next item of type Assignment in the lesson.
     """
 
     class Meta(ItemSerializer.Meta):
@@ -265,6 +330,9 @@ class AssignmentAnalyticsSerializer(ItemSerializer):
     next_assignment = serializers.SerializerMethodField()
 
     def get_next_item(self, obj):
+        """
+        Return the next item in the lesson, if any.
+        """
         try:
             return obj.next_item_id
         except AttributeError:
@@ -281,6 +349,9 @@ class AssignmentAnalyticsSerializer(ItemSerializer):
                 return {"item_id": "", "type": 0, "category": ""}
 
     def get_next_assignment(self, obj):
+        """
+        Return the next assignment in the lesson, if any.
+        """
         try:
             return obj.next_video_id
         except AttributeError:

@@ -8,12 +8,16 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from coursera.filters import GenericFilterSet
-from coursera.models import (Branch, ClickstreamEvent, Course, Item, ItemType,
-                             Quiz)
-from coursera.serializers import (AssignmentAnalyticsSerializer,
-                                  CourseAnalyticsSerializer, CourseSerializer,
-                                  ItemSerializer, QuizAnalyticsSerializer,
-                                  QuizSerializer, VideoAnalyticsSerializer)
+from coursera.models import Branch, ClickstreamEvent, Course, Item, ItemType, Quiz
+from coursera.serializers import (
+    AssignmentAnalyticsSerializer,
+    CourseAnalyticsSerializer,
+    CourseSerializer,
+    ItemSerializer,
+    QuizAnalyticsSerializer,
+    QuizSerializer,
+    VideoAnalyticsSerializer,
+)
 
 
 class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
@@ -23,17 +27,39 @@ class CourseAnalyticsViewSet(ReadOnlyModelViewSet):
 
     @cached_property
     def generic_filterset(self):
+        """
+        Return a partial that applies GenericFilterSet to a queryset and
+        returns the filtered queryset.
+        """
+
         def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            """
+            Apply GenericFilterSet and return the filtered queryset.
+            """
             return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
 
         return partial(get_filterset, self.request.GET, request=self.request)
 
     def get_serializer_class(self):
+        """
+        Return CourseAnalyticsSerializer for single objects, and
+        CourseSerializer for multiple objects.
+        """
         if self.action == "retrieve":
             return CourseAnalyticsSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
+        """
+        Return the queryset of courses that the current user has access to.
+
+        Annotate with the number of enrolled, finished and paying learners and
+        the specialization name. For a single object, additionally annotate
+        with the number of modules, quizzes, assignments, videos and cohorts,
+        and with the average time spent on the course.
+
+        Order by specialization, then by name.
+        """
         queryset = (
             super()
             .get_queryset()
@@ -73,11 +99,20 @@ class VideoAnalyticsViewSet(ReadOnlyModelViewSet):
     lookup_url_kwarg = "item_id"
 
     def get_serializer_class(self):
+        """
+        Return VideoAnalyticsSerializer for single objects, VideoSerializer
+        for multiple objects.
+        """
         if self.action == "retrieve":
             return VideoAnalyticsSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
+        """
+        Return a queryset of videos that the current user has access to.
+
+        Order by the item order in the module.
+        """
         queryset = (
             super()
             .get_queryset()
@@ -106,22 +141,50 @@ class QuizAnalyticsViewSet(ReadOnlyModelViewSet):
 
     @cached_property
     def generic_filterset(self):
+        """
+        Return a partial that applies GenericFilterSet to a queryset and
+        returns the filtered queryset.
+        """
+
         def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            """
+            Apply GenericFilterSet and return the filtered queryset.
+            """
             return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
 
         return partial(get_filterset, self.request.GET, request=self.request)
 
     def get_serializer_class(self):
+        """
+        Return QuizAnalyticsSerializer for single objects, QuizSerializer for
+        multiple objects.
+        """
         if self.action == "retrieve":
             return QuizAnalyticsSerializer
         return super().get_serializer_class()
 
     def get_serializer_context(self):
+        """
+        Add the course id to the serializer's context.
+        """
         context = super().get_serializer_context()
         context["course_id"] = self.kwargs["course_id"]
         return context
 
     def get_queryset(self):
+        """
+        Return a queryset of quizzes that the current user has access to.
+
+        Only return the latest version of each quiz, unless the versions of a
+        specific quiz are requested.
+
+        Annotate with the name of the related item, and whether the related
+        item is graded.
+
+        If a single item is requested, annotate with the average grade.
+
+        Order by the item order within the module.
+        """
         queryset = (
             super()
             .get_queryset()
@@ -166,17 +229,37 @@ class AssignmentAnalyticsViewSet(ReadOnlyModelViewSet):
 
     @cached_property
     def generic_filterset(self):
+        """
+        Return a partial that applies GenericFilterSet to a queryset and
+        returns the filtered queryset.
+        """
+
         def get_filterset(data=None, queryset=None, *, request=None, prefix=None):
+            """
+            Apply GenericFilterSet and return the filtered queryset.
+            """
             return GenericFilterSet(data, queryset, request=request, prefix=prefix).qs
 
         return partial(get_filterset, self.request.GET, request=self.request)
 
     def get_serializer_class(self):
+        """
+        Return AssignmentAnalyticsSerializer for single objects,
+        AssignmentSerializer for multiple objects.
+        """
         if self.action == "retrieve":
             return AssignmentAnalyticsSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
+        """
+        Return a queryset of assignments that the current user has access to.
+
+        If a single item is requested, annotate with the number of submissions,
+        the submission ratio and the average grade.
+
+        Order by the assignment order within the module.
+        """
         queryset = (
             super()
             .get_queryset()

@@ -1,4 +1,9 @@
 class User:
+    """
+    User object that replaces django.contrib.auth.models.User without
+    requiring database access.
+    """
+
     is_staff = False
     is_superuser = False
 

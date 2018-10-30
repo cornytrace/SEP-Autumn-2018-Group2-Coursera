@@ -14,12 +14,18 @@ model_list = [
 @pytest.mark.django_db
 @pytest.mark.parametrize("model", model_list)
 def test_can_query_model(model):
+    """
+    Test that every model can be queried successfully.
+    """
     assert model.objects.all()[:1], "Coursera database is empty"
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("model", model_list)
 def test_cannot_save_model(model):
+    """
+    Test that none of the models can be saved.
+    """
     with pytest.raises(ProtectedError):
         model.objects.create(pk="abc")
 
@@ -27,6 +33,9 @@ def test_cannot_save_model(model):
 @pytest.mark.django_db
 @pytest.mark.parametrize("model", model_list)
 def test_can_access_foreign_keys(model):
+    """
+    Test that foreign keys on all models can be accessed.
+    """
     instance = model.objects.all()[0]
     for field in model._meta.fields:
         if field.many_to_one:

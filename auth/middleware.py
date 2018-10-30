@@ -24,15 +24,24 @@ class OAuth2TokenMiddleware(MiddlewareMixin):
     """
 
     def process_request(self, request):
+        """
+        If the Authorization header is present and contains a Bearer token,
+        authenticate the user and set the user on the request.
+        """
         # do something only if request contains a Bearer token
         if request.META.get("HTTP_AUTHORIZATION", "").startswith("Bearer"):
             if not hasattr(request, "user") or request.user.is_anonymous:
                 user = authenticate(request=request)
                 if user:
+                    # request._user and request._cached_user are used by various internals
+                    # of Django and Django REST Framework.
                     request.user = request._user = request._cached_user = user
             else:  # pragma: no cover
                 return None
 
     def process_response(self, request, response):
+        """
+        Make sure authorized respones are not cached for different users.
+        """
         patch_vary_headers(response, ("Authorization",))
         return response
