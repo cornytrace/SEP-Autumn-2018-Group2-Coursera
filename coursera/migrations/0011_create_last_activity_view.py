@@ -9,6 +9,17 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
+            # For each course and user, the last_activity_view selects the
+            # last module in which that user had any activity, along with the
+            # timestamp of that activity.
+            #
+            # This view is used to determine which learners had their last
+            # activity more than 6 weeks ago, and thus have left the course.
+            #
+            # course-analytics/
+            # - leaving_learners
+            #
+            # The last_activity_per_module view depends on this view.
             sql=[
                 """
                 CREATE MATERIALIZED VIEW IF NOT EXISTS

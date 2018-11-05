@@ -9,6 +9,21 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
+            # For each assessment, select the unique tuples of question and
+            # date. For each tuple, calculate the total number of selected
+            # and correct answers up to that date.
+            #
+            # This view is used to calculate the correctness ratio of each
+            # question. The total number of selected and correct answers is
+            # precalculated for each date using a window expression for
+            # performance reasons.
+            #
+            # The count for a specific timespan can be calculated by
+            # subtracting the count at the start of that timespan from the
+            # count at the end of that timespan.
+            #
+            # quiz-analytics/
+            # - correct_ratio_per_question
             [
                 """
                 CREATE MATERIALIZED VIEW

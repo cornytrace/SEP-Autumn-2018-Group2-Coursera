@@ -9,6 +9,15 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
+            # Select each unique tuple of assessment, user and date from the
+            # assessment_response_actions_view.
+            #
+            # This view is used to calculate the average number of attempts
+            # and the distribution of the number of attempts.
+            #
+            # quiz-analytics/
+            # - average_attempts
+            # - number_of_attempts
             [
                 """
                 DROP MATERIALIZED VIEW IF EXISTS assessment_attempts_view

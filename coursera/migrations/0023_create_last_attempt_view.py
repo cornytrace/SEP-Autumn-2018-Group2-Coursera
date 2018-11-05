@@ -9,6 +9,14 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
+            # Denormalizes assessment_responses and assessment_actions into a
+            # single table. This is needed for performance.
+            #
+            # This view is not used directly.
+            #
+            # The assessment_last_attempt_responses_view,
+            # assessment_attempts_view and
+            # assessment_answers_over_time_view depend on this view.
             [
                 """
                 CREATE MATERIALIZED VIEW
@@ -51,6 +59,13 @@ class Migration(migrations.Migration):
             reverse_sql="DROP MATERIALIZED VIEW IF EXISTS assessment_response_actions_view",
         ),
         migrations.RunSQL(
+            # For each unique tuple of assessment, user and
+            # assessment_question_order, select the latest response for that
+            # question. This view is needed for perforrmance.
+            #
+            # This view is not used directly.
+            #
+            # The assessment_last_attempt_view depends on this view.
             [
                 """
                 CREATE MATERIALIZED VIEW
@@ -105,6 +120,16 @@ class Migration(migrations.Migration):
             reverse_sql="DROP MATERIALIZED VIEW IF EXISTS assessment_last_attempt_responses_view",
         ),
         migrations.RunSQL(
+            # For each assessment and user, calculate the score of their last
+            # attempt. Also select the timestamp of their last submitted
+            # response.
+            #
+            # This view is used to calculate the averege grade and grade
+            # distribution for learner's last attempts.
+            #
+            # quiz-analytics/
+            # - last_attempt_average_grade
+            # - last_attempt_grade_distribution
             [
                 """
                 CREATE MATERIALIZED VIEW

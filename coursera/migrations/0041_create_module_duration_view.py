@@ -9,6 +9,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
+            # For each module and user, select the duration between that
+            # user's first and last activity in the specific module.
+            #
+            # Used to calculate the average time that users spend on a module.
+            #
+            # course-analytics/
+            # - average_time_per_module
             [
                 """
                 CREATE MATERIALIZED VIEW

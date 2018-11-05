@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
+            # Unused, replaced in migration 0024.
             [
                 """
                 CREATE MATERIALIZED VIEW

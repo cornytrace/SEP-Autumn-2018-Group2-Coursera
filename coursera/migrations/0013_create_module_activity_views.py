@@ -9,6 +9,12 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
+            # For each module and user, select the earliest activity timestamp
+            # for that user in the specific module.
+            #
+            # This view is not used directly.
+            #
+            # The module_duration_view depends on this view.
             [
                 """
                 CREATE MATERIALIZED VIEW
@@ -42,6 +48,12 @@ class Migration(migrations.Migration):
             reverse_sql="DROP MATERIALIZED VIEW IF EXISTS module_first_activity_view",
         ),
         migrations.RunSQL(
+            # For each module and user, select the latest activity timestamp
+            # for that user in the specific module.
+            #
+            # This view is not used directly.
+            #
+            # The module_duration_view depends on this view.
             [
                 """
                 CREATE MATERIALIZED VIEW

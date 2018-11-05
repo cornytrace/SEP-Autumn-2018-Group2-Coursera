@@ -52,6 +52,15 @@ class Migration(migrations.Migration):
             reverse_sql="DROP MATERIALIZED VIEW IF EXISTS clickstream_events_view",
         ),
         migrations.RunSQL(
+            # Select all clickstream events of type 'heartbeat'. Denormalize
+            # module_id and item_id to point to the primary keys of
+            # course_branch_modules_view and course_branch_items_view. Group
+            # each timecode into buckets of 5 seconds each.
+            #
+            # This view is used to calculate the views over runtime of a video.
+            #
+            # video-analytics/
+            # - views_over_runtime
             [
                 """
                 CREATE MATERIALIZED VIEW
